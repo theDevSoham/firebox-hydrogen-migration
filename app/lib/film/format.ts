@@ -97,6 +97,7 @@ declare global {
  * `whatsapp_click` once GA is wired up (build order step 4, D.5.2); until then, logged in dev.
  */
 export function trackWhatsAppClick(item: string): void {
+  // eslint-disable-next-line no-console -- dev-only trace until GA4 is wired up (step 4)
   if (import.meta.env.DEV) console.debug('[analytics] whatsapp_click', {item});
   window.gtag?.('event', 'whatsapp_click', {item});
 }

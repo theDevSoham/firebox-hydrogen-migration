@@ -96,7 +96,7 @@ export function useSceneMotion(
           setup({d: Boolean(ctx.conditions?.d), scope: el}),
         );
       });
-      motionTurn().then(() => alive && run());
+      void motionTurn().then(() => alive && run());
       return () => {
         alive = false;
         mm?.revert();

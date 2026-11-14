@@ -154,7 +154,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: ['./tsconfig.json', './scripts/tsconfig.json'],
         tsconfigRootDir: __dirname,
         ecmaFeatures: {
           jsx: true,
@@ -243,6 +243,13 @@ export default [
     files: ['**/*.server.*'],
     rules: {
       'react-hooks/rules-of-hooks': 'off',
+    },
+  },
+  {
+    // Command-line scripts report what they do on stdout.
+    files: ['scripts/**', 'skills/*.mjs'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ];

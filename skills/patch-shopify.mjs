@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- a command-line script: it reports what it did. */
 // Applies this repo's privacy edits to the copied-in Shopify AI Toolkit skill (skills/shopify).
 // Run by skills/sync-shopify.sh after every update; safe to run on its own too.
 //
@@ -119,4 +118,3 @@ for (const f of [
 console.log(
   'Patched skills/shopify/SKILL.md and removed the logging-only scripts.',
 );
-/* eslint-enable no-console */
