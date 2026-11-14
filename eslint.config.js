@@ -30,6 +30,7 @@ export default [
       '**/*.graphql.d.ts',
       '**/*.graphql.ts',
       '**/*.generated.d.ts',
+      'skills/shopify/',
       '**/.react-router/',
       '**/packages/hydrogen/dist/',
     ],
