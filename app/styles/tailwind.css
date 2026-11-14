@@ -4,3 +4,126 @@
  */
 
 @import 'tailwindcss';
+
+/* =============================================================
+   The Firebox · design tokens (firebox-official app/globals.css,
+   from handoff/02-tokens.css). Site-wide; the film's own styles
+   are in film.css and load on the film route only.
+   ============================================================= */
+
+:root {
+  /* Colour: sampled from the real logo and posters. Never pure black. */
+  --fb-charcoal:   #160B06; /* dark base, ~40% of the film */
+  --fb-cream:      #FEF2DA; /* type on dark, light chapters, ~25% */
+  --fb-red:        #C8272C; /* primary: logo FIRE, buttons, prices */
+  --fb-red-bright: #DC3232; /* poster red: halftone grounds, display type 24px+ only */
+  --fb-ember:      #B11E24; /* deep chapters, chips, logo tag */
+  --fb-char:       #36191A; /* text on light, logo BOX */
+  --fb-amber:      #B77E07; /* glow, lit words, hover; sparingly, never text on cream */
+  --fb-kraft:      #E0B482; /* box chapter, paper */
+  --fb-bark:       #924018; /* burnt-ends chapter */
+  --fb-ash:        #3A2A26; /* S2 unlit words (decorative state only) */
+  --fb-bw:         #2A2624; /* S8 Behind the Pit ground */
+  --fb-guest:      #E0B482; /* collab accent: overridden per drop from the admin */
+
+  /* Contrast pairs (WCAG 2.2), for reference
+     cream/charcoal 17.45 · char/cream 14.44 · kraft/charcoal 10.16 · char/kraft 8.41
+     cream/bark 6.38 · cream/ember 6.14 · amber/charcoal 5.53 · cream/red 5.00 · red/cream 5.00
+     LARGE ONLY (24px+): cream/red-bright 4.16 · red-bright/charcoal 4.19 · red/charcoal 3.49
+     AVOID: amber/cream 3.15 · DECOR ONLY: red/kraft 2.91 · LOGO ONLY: char/red 2.89
+     NEVER: char/charcoal 1.21 (why the logo wears an ember tag at night) */
+
+  /* Fluid type scale (min at 390, max at 1440). Values in the comments are 390 → 1440. */
+  --fs-giant:   clamp(88px, 20vw, 300px);   /* 88 → 288 · Anton · lh .82 · -0.01em */
+  --fs-display: clamp(56px, 11vw, 176px);   /* 56 → 158 · Anton · lh .86 */
+  --fs-title:   clamp(40px, 6.4vw, 104px);  /* 40 → 92  · Anton · lh .9 · .005em */
+  --fs-manifesto: clamp(46px, 7.6vw, 116px);/* 46 → 109 · Anton · lh .98 (S2) */
+  --fs-accent:  clamp(30px, 4vw, 60px);     /* 30 → 58  · Fraunces 300, SOFT 100, WONK 1 · lh 1.05 */
+  --fs-dish:    clamp(26px, 2.6vw, 40px);   /* 26 → 37  · Yanone 700 · uppercase · .04em */
+  --fs-price:   clamp(28px, 2.8vw, 44px);   /* 28 → 40  · Anton · .02em · written 549/- */
+  --fs-label:   clamp(16px, 1.25vw, 20px);  /* 16 → 18  · Yanone 600 · uppercase · .12em */
+  --fs-body-l:  clamp(18px, 1.4vw, 22px);   /* 18 → 20  · Jost 400 · lh 1.55 */
+  --fs-body:    clamp(16px, 1.15vw, 18px);  /* 16 → 16.6· Jost 400 · lh 1.6 */
+  --fs-meta:    14px;                       /* Jost 500 · .02em · captions only, never body */
+
+  /* Layout */
+  --gutter-l: max(clamp(16px, 5vw, 80px), env(safe-area-inset-left, 0px));
+  --gutter-r: max(clamp(16px, 5vw, 80px), env(safe-area-inset-right, 0px));
+  --nav-h: 84px;            /* 68px below 768px */
+  --chip-border: 4px;       /* ~0.28vw at 1440 */
+  --chip-tilt: 3deg;        /* alternate +/- per scene */
+  --tap-min: 48px;          /* buttons; 44px minimum for links */
+
+  /* Layers */
+  --z-scene: 1;
+  --z-curtain: 3;           /* a scene that slides over a pinned one */
+  --z-nav: 50;
+  --z-readout: 60;
+  --z-intro: 100;
+
+  /* Motion vocabulary (GSAP names; CSS equivalents for simple transitions) */
+  --ease-rise: cubic-bezier(.215, .61, .355, 1);   /* ≈ power2.out: text and card rises */
+  --ease-wipe: cubic-bezier(0, .55, .45, 1);       /* ≈ circ.out: chip wipes */
+  --ease-loop: cubic-bezier(.77, 0, .175, 1);      /* ≈ power4.inOut: timed loops, word machine */
+
+  color-scheme: dark;
+}
+
+@media (max-width: 767px) {
+  :root { --nav-h: 68px; }
+}
+
+/* Tailwind 4: expose tokens as utilities (bg-fb-ember, text-fb-cream, font-display, text-fb-title …). */
+@theme inline {
+  --color-fb-charcoal: var(--fb-charcoal);
+  --color-fb-cream: var(--fb-cream);
+  --color-fb-red: var(--fb-red);
+  --color-fb-red-bright: var(--fb-red-bright);
+  --color-fb-ember: var(--fb-ember);
+  --color-fb-char: var(--fb-char);
+  --color-fb-amber: var(--fb-amber);
+  --color-fb-kraft: var(--fb-kraft);
+  --color-fb-bark: var(--fb-bark);
+  --color-fb-ash: var(--fb-ash);
+  --color-fb-bw: var(--fb-bw);
+  --color-fb-guest: var(--fb-guest);
+
+  --font-display: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
+  --font-label: var(--font-yanone), "Arial Narrow", sans-serif;
+  --font-accent: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-jost), Futura, "Century Gothic", system-ui, sans-serif;
+  --font-marker: var(--font-permanent-marker), "Comic Sans MS", cursive;
+
+  /* The type scale above, as text-fb-* utilities with their line heights. */
+  --text-fb-giant: var(--fs-giant);
+  --text-fb-giant--line-height: .82;
+  --text-fb-display: var(--fs-display);
+  --text-fb-display--line-height: .86;
+  --text-fb-title: var(--fs-title);
+  --text-fb-title--line-height: .9;
+  --text-fb-manifesto: var(--fs-manifesto);
+  --text-fb-manifesto--line-height: .98;
+  --text-fb-accent: var(--fs-accent);
+  --text-fb-accent--line-height: 1.05;
+  --text-fb-dish: var(--fs-dish);
+  --text-fb-dish--line-height: 1;
+  --text-fb-price: var(--fs-price);
+  --text-fb-price--line-height: 1;
+  --text-fb-label: var(--fs-label);
+  --text-fb-label--line-height: 1.1;
+  --text-fb-body-l: var(--fs-body-l);
+  --text-fb-body-l--line-height: 1.55;
+  --text-fb-body: var(--fs-body);
+  --text-fb-body--line-height: 1.6;
+  --text-fb-meta: var(--fs-meta);
+  --text-fb-meta--line-height: 1.4;
+}
+
+/* Font families: self-hosted woff2 (PORTING-DECISIONS.md · D.3.3), declared in film.css. */
+:root {
+  --font-anton: "Anton";
+  --font-yanone: "Yanone Kaffeesatz";
+  --font-fraunces: "Fraunces";
+  --font-jost: "Jost";
+  --font-permanent-marker: "Permanent Marker";
+}

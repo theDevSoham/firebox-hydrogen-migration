@@ -1,0 +1,567 @@
+/* =============================================================
+   The Firebox · the film (home route only)
+   firebox-official app/globals.css (base + components) and
+   app/film.css. Tokens live in tailwind.css.
+   ============================================================= */
+
+/* Fonts: self-hosted, Latin only (handoff/03-fonts.md). Fraunces is pinned to the one instance the
+   site sets (weight 300, SOFT 100, WONK 1), with optical size still variable (SIL OFL 1.1,
+   assets/fonts/OFL-Fraunces.txt). */
+@font-face { font-family: "Anton"; font-style: normal; font-weight: 400; font-display: swap; src: url("../assets/fonts/anton-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Yanone Kaffeesatz"; font-style: normal; font-weight: 200 700; font-display: swap; src: url("../assets/fonts/yanone-kaffeesatz-latin-wght-normal.woff2") format("woff2-variations"); }
+@font-face { font-family: "Fraunces"; font-style: normal; font-weight: 300; font-display: swap; src: url("../assets/fonts/fraunces-300-soft100-wonk1.woff2") format("woff2"); }
+@font-face { font-family: "Jost"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("../assets/fonts/jost-latin-wght-normal.woff2") format("woff2-variations"); }
+@font-face { font-family: "Permanent Marker"; font-style: normal; font-weight: 400; font-display: swap; src: url("../assets/fonts/permanent-marker-latin-400-normal.woff2") format("woff2"); }
+
+@layer base {
+  html { background: var(--fb-charcoal); }
+  body {
+    background: var(--fb-charcoal);
+    color: var(--fb-cream);
+    font-family: var(--font-jost), Futura, "Century Gothic", system-ui, sans-serif;
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* Focus: visible on every surface */
+  :focus-visible { outline: 3px solid var(--fb-cream); outline-offset: 3px; box-shadow: 0 0 0 7px var(--fb-amber); }
+}
+
+/* Lenis */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+@layer components {
+  /* Texture utilities (files from handoff/assets/textures → public/textures) */
+  .fb-halftone { background-color: var(--fb-red-bright); background-image: url(/textures/halftone.svg); background-size: 480px 480px; }
+  .fb-kraft    { background-color: var(--fb-kraft); background-image: url(/textures/kraft.svg); background-size: 420px 420px; }
+  .fb-distress { -webkit-mask-image: url(/textures/grunge-mask.svg); mask-image: url(/textures/grunge-mask.svg); -webkit-mask-size: 640px 320px; mask-size: 640px 320px; }
+  .fb-edge-torn  { background: url(/textures/edge-torn-kraft.svg) repeat-x; background-size: 1440px 56px; height: 56px; }  /* kraft body below a torn line */
+  .fb-edge-char  { background: url(/textures/edge-char.svg) repeat-x; background-size: 1440px 64px; height: 64px; }       /* charcoal body below a burnt line; flip with scaleY(-1) */
+  .fb-edge-drip  { background: url(/textures/edge-drip.svg) repeat-x; background-size: 1440px 96px; height: 96px; }       /* cream band with fat drips hanging down */
+  .fb-tape       { background: url(/textures/tape.svg) no-repeat; background-size: 100% 100%; }
+
+  /* Type devices */
+  .fb-anton  { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; line-height: .88; }
+  .fb-yanone { font-family: var(--font-label); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; line-height: 1.05; }
+  .fb-fraunces { font-family: var(--font-accent); font-weight: 300; font-variation-settings: "SOFT" 100, "WONK" 1; }
+
+  /* SkipLink: first focusable element on every page */
+  .fb-skip {
+    position: absolute; left: -9999px; top: 8px; z-index: calc(var(--z-intro) + 1);
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; background: var(--fb-cream); color: var(--fb-char);
+    font: 700 18px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
+  }
+  .fb-skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); }
+  /* The skip link's target takes focus so the next Tab starts inside it; it isn't a control, so no ring. */
+  #content:focus { outline: none; box-shadow: none; }
+
+  /* Logo: the traced SVGs, sized by --logo-w */
+  .fb-logo { display: block; width: var(--logo-w); height: auto; }
+  .fb-logo-tag {
+    display: inline-flex; flex: none; background: var(--fb-ember); transform: rotate(-2deg);
+    padding: calc(var(--logo-w) * .074) calc(var(--logo-w) * .111) calc(var(--logo-w) * .056);
+  }
+  .fb-logo-groups { position: relative; width: var(--logo-w); aspect-ratio: 329 / 176.6; overflow: hidden; }
+  .fb-logo-groups > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* Chip: the tilted label. The wrapper tilts; the chip itself takes the clip-path wipe. */
+  .fb-chip-tilt { display: inline-flex; transform: rotate(var(--tilt, var(--chip-tilt))); }
+  .fb-chip {
+    display: inline-flex; align-items: center; padding: .36em .7em .22em;
+    border: var(--chip-border) solid var(--fb-cream); background: var(--fb-ember); color: var(--fb-cream);
+    font: 700 var(--chip-size, 20px)/1 var(--font-label); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  }
+  .fb-chip--s { --chip-size: 20px; }
+  .fb-chip--m { --chip-size: clamp(20px, 2.1vw, 30px); }
+  .fb-chip--l { --chip-size: clamp(30px, 3.06vw, 44px); }
+  .fb-chip--cream { background: var(--fb-cream); border-color: var(--fb-ember); color: var(--fb-char); }
+  .fb-chip--amber { background: var(--fb-amber); border-color: var(--fb-charcoal); outline: 2px solid var(--fb-amber); color: var(--fb-charcoal); }
+  .fb-chip--kraft { background: var(--fb-kraft) url(/textures/kraft.svg); background-size: 420px 420px; color: var(--fb-char); }
+
+  /* Cta: square buttons and links. Every order action is a real <a>. */
+  .fb-cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: var(--tap-min); padding: 0 20px; box-sizing: border-box;
+    background: var(--fb-red); color: var(--fb-cream); border: 0; cursor: pointer; text-decoration: none;
+    font: 700 20px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase;
+    transition: transform .25s var(--ease-rise), background-color .25s, box-shadow .25s, color .25s;
+  }
+  .fb-cta > svg { width: 22px; height: 22px; flex: none; }
+  .fb-cta--l { min-height: 60px; padding: 0 28px; font-size: clamp(22px, 2vw, 28px); }
+  .fb-cta--s { padding: 0 16px; font-size: 18px; }
+  .fb-cta--s > svg { width: 20px; height: 20px; }
+  .fb-cta--on-red { background: var(--fb-charcoal); }
+  .fb-cta--secondary,
+  .fb-cta--sold-out { background: transparent; color: inherit; box-shadow: inset 0 0 0 2px currentColor; }
+  .fb-cta--secondary { color: var(--fb-cream); }
+  .fb-cta--sold-out s { text-decoration-thickness: 2px; }
+  .fb-cta--text {
+    min-height: 44px; padding: 0; gap: 8px; background: none; color: var(--cta-text-colour, var(--fb-amber));
+  }
+  .fb-cta--text > svg { width: 14px; height: 14px; }
+  .fb-cta--text .fb-cta__label { border-bottom: 2px solid currentColor; padding-bottom: 3px; }
+
+  @media (hover: hover) {
+    .fb-cta:hover { background: var(--fb-ember); color: var(--fb-cream); box-shadow: 0 0 0 3px var(--fb-amber); transform: rotate(-1.5deg); }
+    .fb-cta--text:hover { background: none; box-shadow: none; transform: none; color: var(--cta-text-hover, var(--fb-cream)); }
+  }
+  .fb-cta:focus-visible { box-shadow: 0 0 0 7px var(--fb-amber); }
+  .fb-cta--text:focus-visible { box-shadow: 0 0 0 7px var(--fb-amber); }
+
+  /* SiteNav: logo + one CTA over the film. Theme set per chapter by data-theme. */
+  .fb-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-nav);
+    height: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px); padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+    display: flex; align-items: center; justify-content: space-between; pointer-events: none;
+  }
+  .fb-nav > * { pointer-events: auto; }
+  .fb-nav__home { display: flex; align-items: center; min-height: var(--tap-min); text-decoration: none; }
+  .fb-nav__home > [data-logo] { display: none; }
+  .fb-nav[data-theme="night"] [data-logo="tag"],
+  .fb-nav[data-theme="bark"] [data-logo="tag"] { display: inline-flex; }
+  .fb-nav[data-theme="light"] [data-logo="normal"],
+  .fb-nav[data-theme="kraft"] [data-logo="normal"],
+  .fb-nav[data-theme="ember"] [data-logo="reversed"],
+  .fb-nav[data-theme="red"] [data-logo="reversed"],
+  .fb-nav[data-theme="bw"] [data-logo="mono-cream"] { display: block; }
+  .fb-nav[data-theme="ember"] .fb-cta,
+  .fb-nav[data-theme="red"] .fb-cta { background: var(--fb-charcoal); }
+  .fb-nav[data-theme="kraft"] .fb-cta { background: var(--fb-char); }
+  .fb-nav[data-theme="bw"] .fb-cta { background: transparent; box-shadow: inset 0 0 0 2px var(--fb-cream); }
+  @media (hover: hover) {
+    .fb-nav[data-theme] .fb-cta:hover { background: var(--fb-ember); box-shadow: 0 0 0 3px var(--fb-amber); }
+  }
+  .fb-nav[data-theme] .fb-cta:focus-visible { box-shadow: 0 0 0 7px var(--fb-amber); }
+  @media (max-width: 767px) {
+    .fb-nav .fb-cta { padding: 0 14px; font-size: 18px; gap: 8px; }
+    .fb-nav .fb-cta > svg { width: 20px; height: 20px; }
+  }
+}
+
+/* =============================================================
+   Scene layouts S1–S9 and their content components.
+   This is the static end frame of every scene, which is also the
+   no-JavaScript version (handoff/06). Motion only adds start
+   states on top.
+   ============================================================= */
+
+@layer components {
+  /* ---------- shared ---------- */
+
+  /* Dashed label on interim media */
+  .fb-ph {
+    position: absolute; z-index: 6; display: inline-flex; max-width: calc(100% - 32px);
+    padding: 6px 10px 4px; background: rgb(22 11 6 / .86); color: var(--fb-cream);
+    border: 1px dashed rgb(254 242 218 / .6); pointer-events: none;
+    font: 700 16px/1.1 var(--font-label); letter-spacing: .1em; text-transform: uppercase;
+  }
+
+  .fb-fill { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
+
+  /* Rubber stamp */
+  .fb-stamp {
+    display: inline-block; padding: 8px 16px 2px; border: 6px solid currentColor; color: var(--stamp-ink, var(--fb-char));
+    font: 400 var(--stamp-size, clamp(48px, 4.4vw, 62px))/1 var(--font-display); text-transform: uppercase; white-space: nowrap;
+    transform: translate(-50%, -50%) rotate(-14deg);
+  }
+
+  /* NEW seal, option B */
+  .fb-seal {
+    position: absolute; top: 14px; right: 14px; z-index: 2; width: 100px; height: 100px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; background: var(--fb-ember); color: var(--fb-cream); transform: rotate(-10deg);
+  }
+  .fb-seal svg { position: absolute; inset: 0; animation: fb-spin 18s linear infinite; }
+  .fb-seal b { font: 400 30px/1 var(--font-display); color: var(--fb-cream); }
+
+  /* ---------- S1 · The pit ---------- */
+  .s1 { position: relative; z-index: var(--z-scene); height: 100vh; height: 100svh; min-height: 600px; background: var(--fb-charcoal); overflow: hidden; }
+  .s1-card { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 50%; }
+  .s1-copy {
+    position: absolute; z-index: 3; left: var(--gutter-l); right: var(--gutter-r); top: calc(var(--nav-h) + 4vh);
+    display: flex; flex-direction: column; gap: 14px; max-width: 1040px; color: var(--fb-char);
+  }
+  .s1-h { margin: 0; font-size: clamp(60px, 8.2vw, 128px); text-wrap: balance; }
+  .s1-sub { margin: 0; font-size: clamp(22px, 2.6vw, 38px); line-height: 1.3; max-width: 22em; }
+  .s1-sub span { background: var(--fb-cream); padding: .04em .3em .08em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .s1-foot {
+    position: absolute; z-index: 3; left: var(--gutter-l); right: var(--gutter-r); bottom: calc(5vh + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px;
+  }
+  .s1-note { padding: 9px 12px 7px; background: var(--fb-charcoal); color: var(--fb-cream); font-size: 18px; }
+  .s1 .fb-ph { right: var(--gutter-r); top: calc(var(--nav-h) + 12px); }
+
+  /* ---------- S2 · Ash to ember ---------- */
+  .s2 {
+    position: relative; z-index: 2; min-height: 120vh; box-sizing: border-box; background: var(--fb-charcoal);
+    display: flex; align-items: center; padding: 16vh var(--gutter-r) 14vh var(--gutter-l);
+  }
+  .s2-inner { display: flex; flex-direction: column; gap: 6vh; max-width: 1280px; }
+  .s2-text { margin: 0; font-size: var(--fs-manifesto); line-height: .98; color: var(--fb-cream); }
+  .s2-chip { align-self: flex-end; }
+
+  /* ---------- S3 · Nine hours ---------- */
+  .s3 { position: relative; z-index: 2; height: 100vh; height: 100svh; min-height: 600px; background: var(--fb-charcoal); overflow: hidden; }
+  .s3-stage { display: grid; grid-template-columns: minmax(0, 1fr) min(420px, 32vw); height: 100%; }
+  .s3-art { position: relative; overflow: hidden; }
+  .s3-art img { object-position: 40% 50%; }
+  .s3-art .fb-ph { left: 24px; bottom: 24px; }
+  .s3-slate {
+    position: relative; display: flex; flex-direction: column; box-sizing: border-box;
+    padding: calc(var(--nav-h) + 32px) 72px 48px 40px; border-left: 2px solid var(--fb-char);
+  }
+  .s3-kicker { color: var(--fb-kraft); font-size: 22px; }
+  .s3-clock { display: flex; align-items: baseline; gap: 12px; margin-top: 24px; }
+  .s3-time { font-size: clamp(80px, 8.4vw, 128px); line-height: .85; color: var(--fb-amber); font-variant-numeric: tabular-nums; }
+  .s3-hrs { font-size: 36px; }
+  .s3-ticks {
+    position: absolute; right: 22px; top: calc(var(--nav-h) + 40px); bottom: 210px; margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; justify-content: space-between; text-align: right;
+    font: 600 20px/1 var(--font-label); color: var(--fb-cream);
+  }
+  .s3-name { margin: auto 0 0; font-size: clamp(30px, 2.8vw, 42px); line-height: 1.1; }
+  .s3-chip { margin-top: 22px; align-self: flex-start; }
+
+  /* ---------- S4 · The cuts ---------- */
+  .s4 { position: relative; z-index: 2; overflow-x: clip; }
+  .s4-chapter { position: relative; padding-bottom: 8vh; }
+  .s4-chapter[data-theme="ember"] { background-color: var(--fb-ember); --swell-ink: var(--fb-cream); --count-ink: var(--fb-cream); }
+  .s4-chapter[data-theme="night"] { background-color: var(--fb-charcoal); --swell-ink: var(--fb-red-bright); --count-ink: var(--fb-amber); }
+  .s4-chapter[data-theme="kraft"] { --swell-ink: var(--fb-char); --count-ink: var(--fb-char); }
+  .s4-chapter[data-theme="bark"] { background-color: var(--fb-bark); --swell-ink: var(--fb-cream); --count-ink: var(--fb-cream); }
+  .s4-title {
+    --swell: min(15vw, calc(180vw / var(--chars)));
+    position: sticky; top: var(--nav-h); z-index: 3; height: calc(var(--swell) * .86 + 28px); box-sizing: border-box;
+    display: flex; align-items: flex-end; gap: 18px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); pointer-events: none;
+  }
+  .s4-swell { margin: 0; font-size: var(--swell); line-height: .84; white-space: nowrap; color: var(--swell-ink); }
+  .s4-count { font-size: clamp(18px, 1.8vw, 26px); padding-bottom: 1.4vw; color: var(--count-ink); }
+  .s4-spacer { height: 6vh; }
+  .s4-cards {
+    position: relative; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); justify-content: end;
+    gap: 8vh 6vw; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  }
+  .s4-cards[data-count="1"] { grid-template-columns: minmax(0, 360px); }
+
+  /* DishCard, option A: night card */
+  .fb-card { position: relative; display: flex; flex-direction: column; background: var(--fb-charcoal); border: 1px solid rgb(254 242 218 / .22); color: var(--fb-cream); }
+  .fb-card__img { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--fb-char); }
+  .fb-card__img img { position: absolute; left: 0; top: -7.5%; width: 100%; height: 115%; max-width: none; object-fit: cover; }
+  .fb-card__none {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center;
+    background: var(--fb-char); border: 2px dashed rgb(254 242 218 / .4); color: var(--fb-kraft);
+    font: 700 20px/1.3 var(--font-label); letter-spacing: .08em; text-transform: uppercase;
+  }
+  .fb-card__edge { position: absolute; left: 0; right: 0; bottom: -1px; height: 64px; background: url(/textures/edge-char.svg) repeat-x; background-size: 1440px 64px; }
+  .fb-card__seam { position: relative; z-index: 3; height: 0; }
+  .fb-card__seam .fb-stamp { position: absolute; left: 50%; top: 0; --stamp-ink: var(--fb-red-bright); --stamp-size: clamp(40px, 3.4vw, 50px); }
+  .fb-card__body { display: flex; flex-direction: column; gap: 10px; padding: 6px 22px 22px; }
+  .fb-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .fb-card__name { margin: 0; font: 700 clamp(26px, 2.4vw, 34px)/1 var(--font-label); letter-spacing: .04em; text-transform: uppercase; }
+  .fb-card__price { font: 400 clamp(28px, 2.5vw, 36px)/1 var(--font-display); color: var(--fb-red-bright); white-space: nowrap; }
+  .fb-card__desc { margin: 0; font-size: 16px; line-height: 1.55; color: var(--fb-kraft); }
+  .fb-card__foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; padding-top: 10px; border-top: 1px solid rgb(254 242 218 / .2); }
+  .fb-card__meta { font: 600 18px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; }
+  .fb-card[data-status="soldout"] .fb-card__img img { filter: grayscale(1) brightness(.7); }
+
+  /* ---------- S5 · Open the box ---------- */
+  .s5-approach {
+    position: relative; z-index: 2; min-height: 34vh; box-sizing: border-box; color: var(--fb-char);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 24px 48px; padding: 6vh var(--gutter-r) 6vh var(--gutter-l);
+  }
+  .s5-approach::before { content: ""; position: absolute; left: 0; right: 0; top: -55px; height: 56px; background: url(/textures/edge-torn-kraft.svg) repeat-x; background-size: 1440px 56px; }
+  .s5-tape { display: block; width: clamp(160px, 18vw, 260px); height: clamp(38px, 4vw, 58px); transform: rotate(-6deg); }
+  .s5-scrawl { font-family: var(--font-marker); font-size: clamp(34px, 4.6vw, 66px); line-height: 1.1; transform: rotate(-4deg); }
+  .s5 { position: relative; z-index: 1; height: 100vh; height: 100svh; min-height: 560px; background: var(--fb-charcoal); overflow: hidden; }
+  .s5-reveal { position: absolute; inset: 0; overflow: hidden; }
+  .s5-reveal .fb-ph { left: var(--gutter-l); bottom: 28px; }
+  /* An ember: a cream core with an amber and ember glow (S0 and S9). */
+  .fb-ember {
+    position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; opacity: 0;
+    background: var(--fb-cream); box-shadow: 0 0 30px 10px rgb(183 126 7 / .6), 0 0 110px 40px rgb(177 30 36 / .35);
+  }
+  .s9-ember { display: none; z-index: 2; left: 50%; top: 42%; }
+  .s9 .fb-smoke { z-index: 1; mix-blend-mode: lighten; }
+
+  .s5-half, .s5-seam, .s5-spacer { display: none; }
+  .s5-half { position: absolute; inset: 0; z-index: 2; overflow: hidden; }
+  .s5-half img {
+    position: absolute; top: 0; left: 50%; height: 100%; width: auto; max-width: none; transform: translateX(-50%);
+    -webkit-mask-image: linear-gradient(90deg, transparent, var(--fb-charcoal) 9%, var(--fb-charcoal) 91%, transparent);
+    mask-image: linear-gradient(90deg, transparent, var(--fb-charcoal) 9%, var(--fb-charcoal) 91%, transparent);
+  }
+  .s5-lid { clip-path: inset(0 0 34.5% 0); }
+  .s5-base { clip-path: inset(65.5% 0 0 0); }
+  .s5-seam {
+    position: absolute; z-index: 3; top: 65.5%; left: calc(50% + 3.5vh); width: min(92vh, 100vw); height: 4px; margin-top: -2px;
+    transform: translateX(-50%); background: var(--fb-cream); box-shadow: 0 0 22px 8px rgb(183 126 7 / .55);
+  }
+  .s5-spacer { height: 120vh; }
+  .s5-copy { position: absolute; z-index: 4; left: var(--gutter-l); top: calc(var(--nav-h) + 6vh); display: flex; flex-direction: column; gap: 12px; max-width: min(560px, 80vw); }
+  .s5-line { margin: 0; font-size: clamp(32px, 3.4vw, 50px); line-height: 1.05; color: var(--fb-cream); }
+  .s5-line span { background: var(--fb-charcoal); padding: 0 .2em .06em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .s5-sub { align-self: flex-start; padding: 6px 10px 4px; background: var(--fb-charcoal); color: var(--fb-kraft); font-size: 20px; }
+
+  /* ---------- S6 · Only 20 ---------- */
+  .s6 { position: relative; z-index: var(--z-curtain); min-height: 120vh; box-sizing: border-box; padding-block: calc(var(--nav-h) + 6vh) 18vh; overflow: clip; }
+  .s6-head { display: flex; flex-direction: column; gap: 14px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+  .s6-title { margin: 0; font-size: clamp(96px, 14vw, 210px); color: var(--fb-cream); }
+  .s6-sub { margin: 0; font-size: clamp(24px, 1.9vw, 26px); color: var(--fb-cream); }
+  .s6-row { display: flex; flex-wrap: wrap; gap: 44px; margin: 0; padding: 7vh var(--gutter-r) 0 var(--gutter-l); list-style: none; }
+  .s6-edge { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: url(/textures/edge-char.svg) repeat-x; background-size: 1440px 64px; background-color: var(--fb-cream); transform: scaleY(-1); }
+
+  /* DropPoster */
+  .fb-poster {
+    position: relative; flex: none; width: min(360px, 78vw); aspect-ratio: 4 / 5; box-sizing: border-box; container-type: inline-size;
+    display: flex; flex-direction: column; overflow: hidden; border: 6px solid var(--fb-cream); color: var(--fb-cream); transform: rotate(-1.5deg);
+  }
+  .fb-poster:nth-child(even) { transform: rotate(1.5deg); }
+  .fb-poster[data-kind="live"] { background: var(--fb-cream); color: var(--fb-char); --hot: var(--fb-red); }
+  .fb-poster[data-kind="next"] { background: var(--fb-char); border-top: 16px solid var(--fb-guest); --hot: var(--fb-guest); }
+  .fb-poster[data-kind="soldout"] { background: var(--fb-ember); }
+  .fb-poster[data-kind="join"] { background: transparent; border: 3px dashed rgb(254 242 218 / .8); align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
+  .fb-poster__media { position: relative; flex: none; height: 46%; overflow: hidden; }
+  .fb-poster[data-kind="soldout"] .fb-poster__media img { filter: saturate(.55); }
+  .fb-poster__type {
+    flex: none; height: 46%; display: flex; align-items: center; padding: 0 18px; box-sizing: border-box; overflow-wrap: anywhere;
+    font: 400 min(clamp(52px, 4.6vw, 66px), calc((100cqi - 36px) / (var(--chars) * .52)))/.86 var(--font-display); text-transform: uppercase;
+  }
+  .fb-poster__art {
+    flex: none; height: 46%; display: flex; align-items: center; justify-content: center; padding: 0 18px; text-align: center;
+    border-bottom: 2px dashed rgb(254 242 218 / .35); color: var(--fb-kraft); font: 700 18px/1.2 var(--font-label); letter-spacing: .08em; text-transform: uppercase;
+  }
+  .fb-poster__body { display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 16px 18px; min-height: 0; }
+  .fb-poster__meta { font: 600 18px/1.1 var(--font-label); letter-spacing: .08em; text-transform: uppercase; }
+  .fb-poster__meta[data-hot] { color: var(--hot, inherit); }
+  .fb-poster__name { margin: 0; font: 400 clamp(34px, 3.1vw, 44px)/.9 var(--font-display); text-transform: uppercase; }
+  .fb-poster__foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .fb-poster__price { font: 400 34px/1 var(--font-display); }
+  .fb-poster[data-kind="live"] .fb-poster__price { color: var(--fb-red); }
+  .fb-poster__price s { text-decoration-thickness: 3px; }
+  .fb-poster > .fb-stamp { position: absolute; left: 50%; top: 52%; z-index: 3; }
+  /* Cream ink on the ember poster: char on ember is 2.35:1, below AA for large text (02-tokens.css lists cream/ember at 6.14). */
+  .fb-poster[data-kind="soldout"] > .fb-stamp { --stamp-ink: var(--fb-cream); }
+  .fb-poster__join { font-size: 28px; line-height: 1.2; }
+
+  /* ---------- S7 · Ki bolchhe Kolkata? ---------- */
+  .s7 { position: relative; z-index: var(--z-curtain); height: 100vh; height: 100svh; min-height: 720px; background: var(--fb-cream); color: var(--fb-char); overflow: clip; }
+  .s7-words { position: absolute; left: 0; right: 0; top: calc(var(--nav-h) + 1vh); margin: 0; font-weight: 400; pointer-events: none; }
+  .s7-w { display: block; width: max-content; font: 400 min(20vw, 29vh)/.86 var(--font-display); text-transform: uppercase; white-space: nowrap; }
+  .s7-w1 { margin-left: 8vw; }
+  .s7-w2 { margin-left: 18vw; color: var(--fb-red); }
+  .s7-w3 { margin-left: -6vw; }
+  .s7-pile { position: absolute; inset: 0; }
+  .s7-pile > * { position: absolute; left: var(--x); top: var(--y); }
+  .s7-handle {
+    position: absolute; right: var(--gutter-r); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 4;
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; box-sizing: border-box;
+    background: var(--fb-char); color: var(--fb-cream); font-size: 18px; text-decoration: none;
+  }
+
+  /* ReelCard */
+  .fb-reel {
+    display: block; width: clamp(170px, 16vw, 240px); padding: 0; border: 8px solid var(--fb-cream); outline: 2px solid var(--fb-char);
+    background: var(--fb-char); color: var(--fb-cream); cursor: pointer; text-align: left; transform: rotate(var(--r));
+  }
+  .fb-reel__img { position: relative; display: block; aspect-ratio: 9 / 16; overflow: hidden; }
+  .fb-reel__img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .fb-reel__play {
+    position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; background: var(--fb-cream); color: var(--fb-char); transition: opacity .2s;
+  }
+  .fb-reel__bar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--fb-amber); }
+  .fb-reel[aria-pressed="true"] .fb-reel__play { opacity: 0; }
+  .fb-reel[aria-pressed="true"] .fb-reel__bar { animation: fb-reel-bar 6s linear infinite; }
+  .fb-reel__foot { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px 7px; font: 700 16px/1 var(--font-label); letter-spacing: .08em; text-transform: uppercase; }
+  @media (hover: hover) { .fb-reel:hover { outline-color: var(--fb-amber); } }
+
+  /* QuoteCard */
+  .fb-quote { width: clamp(220px, 19vw, 280px); margin: 0; padding: 40px 22px 20px; box-sizing: border-box; transform: rotate(var(--r)); }
+  .fb-quote[data-tone="dark"] { background: var(--fb-char); color: var(--fb-cream); }
+  .fb-quote[data-tone="kraft"] { color: var(--fb-char); }
+  .fb-quote__tape { position: absolute; top: -16px; left: 50%; width: 120px; height: 34px; margin-left: -60px; transform: rotate(4deg); }
+  .fb-quote blockquote { margin: 0; font: 300 clamp(22px, 1.9vw, 28px)/1.15 var(--font-accent); font-variation-settings: "SOFT" 100, "WONK" 1; }
+  .fb-quote figcaption { margin-top: 12px; font: 700 16px/1.1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; }
+  .fb-quote__tag { display: inline-flex; margin-top: 10px; padding: 3px 8px 1px; border: 2px dashed currentColor; font: 700 16px/1.1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; }
+
+  /* ---------- S8 · Behind the Pit ---------- */
+  .s8 { position: relative; z-index: var(--z-curtain); min-height: 100vh; background: var(--fb-charcoal); overflow: hidden; }
+  .s8-top { position: relative; z-index: 1; height: 64px; background: url(/textures/edge-char.svg) repeat-x; background-size: 1440px 64px; background-color: var(--fb-cream); }
+  .s8-art { position: absolute; top: 63px; left: 0; right: 0; bottom: 0; }
+  .s8-art img { filter: grayscale(1) contrast(1.15); }
+  .s8-title { position: absolute; z-index: 2; right: var(--gutter-r); top: calc(64px + 10vh); margin: 0; text-align: right; font-size: clamp(84px, 10.4vw, 150px); color: var(--fb-cream); }
+  .s8-lower {
+    position: absolute; z-index: 2; left: 0; bottom: 0; width: min(780px, 100%); box-sizing: border-box; background: var(--fb-bw);
+    display: flex; flex-direction: column; gap: 14px; padding: 34px 56px 40px var(--gutter-l);
+  }
+  .s8-byline { font-size: 26px; }
+  .s8-story { margin: 0; font-size: 20px; line-height: 1.55; max-width: 36em; }
+  .s8-link { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font: 700 22px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; }
+  .s8 .fb-ph { right: var(--gutter-r); bottom: 28px; }
+
+  /* ---------- S9 · Find the smoke ---------- */
+  .s9 {
+    position: relative; z-index: var(--z-curtain); min-height: 100vh; background: var(--fb-charcoal); overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 6vh;
+  }
+  .s9-night { opacity: .42; }
+  .s9-inner {
+    position: relative; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 40px 64px;
+    padding: calc(var(--nav-h) + 6vh) var(--gutter-r) 0 var(--gutter-l);
+  }
+  .s9-main { display: flex; flex-direction: column; align-items: flex-start; gap: 26px; min-width: 0; }
+  .s9-h { margin: 0; align-self: stretch; font-size: clamp(60px, 8.4vw, 128px); }
+  .s9-h em { font-style: normal; color: var(--fb-red-bright); }
+  .s9-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .s9-copy {
+    min-height: var(--tap-min); padding: 0 16px; background: transparent; color: var(--fb-cream); border: 2px solid var(--fb-cream); cursor: pointer;
+    font: 700 18px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase;
+  }
+  .s9-side { display: flex; flex-direction: column; gap: 22px; align-self: end; min-width: 0; }
+  .s9-info { margin: 0; display: flex; flex-direction: column; gap: 22px; font-size: 19px; line-height: 1.45; }
+  .s9-info dt { margin-bottom: 6px; color: var(--fb-kraft); font: 700 18px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase; }
+  .s9-info dd { margin: 0; }
+  .s9-info a { display: inline-flex; align-items: center; min-height: 44px; }
+  .s9-fine { margin: 0; font-size: 16px; line-height: 1.6; color: var(--fb-kraft); }
+  .s9-floor {
+    position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+    padding: 0 var(--gutter-r) calc(24px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
+  }
+  .s9-fl { flex: none; overflow: hidden; }
+  .s9-fl img { display: block; height: clamp(70px, 13vw, 190px); width: auto; max-width: none; }
+  .s9-machine { --mh: clamp(46px, 7vw, 104px); flex: 1; min-width: 0; height: var(--mh); overflow: hidden; text-align: center; }
+  .s9-machine span { display: block; height: var(--mh); font: 400 calc(var(--mh) * .9)/var(--mh) var(--font-display); color: var(--fb-amber); text-transform: uppercase; white-space: nowrap; }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 767px) {
+    .s1-h { font-size: 64px; }
+    .s1-foot .fb-cta { flex: 1 1 100%; }
+    .s1-note { font-size: 16px; }
+    .s1 .fb-ph { top: auto; bottom: calc(5vh + 140px); }
+
+    .s3 { height: auto; min-height: 0; }
+    .s3-stage { display: flex; flex-direction: column; }
+    .s3-art { height: 62vh; }
+    .s3-slate { border-left: 0; padding: 28px var(--gutter-r) 56px var(--gutter-l); }
+    .s3-ticks { display: none; }
+    .s3-name { margin-top: 18px; }
+
+    .s4-title { --swell: min(19vw, calc(170vw / var(--chars))); height: calc(var(--swell) * .86 + 20px); }
+    .s4-title[data-long] { --swell: min(15vw, calc(170vw / var(--chars))); }
+    .s4-cards, .s4-cards[data-count="1"] { grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 6vh; }
+
+    .s6 { min-height: auto; padding-bottom: 16vh; }
+    .s6-scroller { overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter-l); overscroll-behavior-x: contain; }
+    .s6-row { flex-wrap: nowrap; width: max-content; gap: 20px; padding-bottom: 16px; }
+    .fb-poster { scroll-snap-align: start; }
+
+    .s7 { height: auto; min-height: 0; padding-block: calc(var(--nav-h) + 3vh) 12vh; }
+    .s7-words { position: relative; top: auto; }
+    .s7-w { font-size: 24vw; }
+    .s7-pile { position: relative; inset: auto; display: flex; flex-direction: column; align-items: center; margin-top: 4vh; }
+    .s7-pile > * { position: relative; left: auto; top: auto; width: min(240px, 64vw); margin-top: -36px; }
+    .s7-pile > :first-child { margin-top: 0; }
+    .s7-pile > :nth-child(odd) { margin-left: -20vw; }
+    .s7-pile > :nth-child(even) { margin-left: 20vw; }
+    .s7-handle { position: relative; right: auto; bottom: auto; margin: 6vh 0 0 var(--gutter-l); }
+
+    .s8 { min-height: auto; display: flex; flex-direction: column; }
+    .s8-art { position: relative; top: auto; height: 58vh; }
+    .s8-title { position: relative; top: auto; right: auto; text-align: left; padding: 28px var(--gutter-r) 0 var(--gutter-l); font-size: 80px; }
+    .s8-lower { position: relative; width: auto; background: transparent; padding: 16px var(--gutter-r) 56px var(--gutter-l); }
+    .s8 .fb-ph { bottom: auto; top: 80px; }
+
+    .s9-inner { grid-template-columns: minmax(0, 1fr); }
+    .s9-row .fb-cta { flex: 1 1 100%; }
+    .s9-floor { flex-wrap: wrap; justify-content: center; }
+    .s9-machine { order: 3; flex: 1 1 100%; }
+  }
+}
+
+@keyframes fb-spin { to { transform: rotate(360deg); } }
+@keyframes fb-reel-bar { to { width: 100%; } }
+@keyframes fb-reel-push { to { transform: scale(1.12) translateY(-3%); } }
+
+html[data-motion] .fb-reel[aria-pressed="true"] .fb-reel__img img { animation: fb-reel-push 6s ease-in-out infinite alternate; }
+
+html:not([data-motion]) .fb-seal svg { animation: none; }
+
+/* =============================================================
+   Motion layers. Hidden in the static film; shown only when
+   motion runs: html[data-motion] is set before first paint by
+   MOTION_FLAGS in app/root.tsx whenever JavaScript is on.
+   ============================================================= */
+
+@layer components {
+  .fb-smoke { display: none; position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+
+  .s3-raw, .s3-line { display: none; }
+  .s3-line { position: absolute; left: 0; right: 0; top: 0; z-index: 3; height: 4px; margin-top: -2px; background: var(--fb-amber); box-shadow: 0 0 18px 4px rgb(183 126 7 / .7); }
+  .s3-time.is-running { color: var(--fb-cream); }
+
+  html[data-motion] .fb-smoke,
+  html[data-motion] .s3-raw,
+  html[data-motion] .s3-line { display: block; }
+  html[data-motion] .s3-ticks li { color: rgb(224 180 130 / .45); }
+  html[data-motion] .s3-ticks li.is-on { color: var(--fb-cream); }
+
+  html[data-motion] .s5-half,
+  html[data-motion] .s5-seam,
+  html[data-motion] .s5-spacer,
+  html[data-motion] .s9-ember { display: block; }
+
+  /* GSAP centres and rotates the stamps itself. */
+  html[data-motion] .fb-poster > .fb-stamp { transform: none; }
+
+  @media (min-width: 768px) {
+    html[data-motion] .s6-row { flex-wrap: nowrap; width: max-content; }
+  }
+  @media (max-width: 767px) {
+    .s5-spacer { height: 80vh; }
+  }
+}
+
+/* ---------- S0 · Light the pit (motion only) ---------- */
+@layer components {
+  .s0 {
+    display: none; position: fixed; inset: 0; z-index: var(--z-intro); overflow: hidden; background: var(--fb-charcoal);
+    flex-direction: column; align-items: center; justify-content: center; gap: clamp(28px, 5vh, 52px);
+  }
+  .s0-flame {
+    position: absolute; left: 0; right: 0; top: -22vh; bottom: 22vh; margin: auto; width: min(900px, 130vw); height: min(566px, 82vw);
+    mix-blend-mode: screen; opacity: 0;
+    -webkit-mask-image: radial-gradient(closest-side, var(--fb-charcoal) 50%, transparent);
+    mask-image: radial-gradient(closest-side, var(--fb-charcoal) 50%, transparent);
+  }
+  .s0-flame img { object-position: 60% 0%; }
+  .s0-ember { left: 50%; top: 50%; }
+  .s0-tilt { position: relative; z-index: 2; transform: rotate(-2deg); }
+  .s0-tag { display: flex; align-items: center; justify-content: center; width: min(640px, 82vw); aspect-ratio: 640 / 360; background: var(--fb-ember); }
+  .s0-chipwrap { position: relative; z-index: 2; }
+  .s0 .fb-chip { --chip-size: clamp(22px, 2.1vw, 32px); }
+  .s0-skip {
+    position: absolute; right: var(--gutter-r); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 3;
+    min-height: 44px; padding: 10px 14px; background: none; border: 1px solid rgb(254 242 218 / .45); color: var(--fb-cream); cursor: pointer;
+    font: 600 16px/1 var(--font-label); letter-spacing: .12em; text-transform: uppercase;
+  }
+
+  /* Shown from first paint when the inline script asks for the intro. If the script that plays it
+     never runs, these animations hide the overlay and bring the nav back after 8 s. */
+  html[data-intro] .s0 { display: flex; animation: fb-failsafe-hide 0s linear 8s forwards; }
+  html[data-intro] .s0-tilt,
+  html[data-intro] .s0-chipwrap { visibility: hidden; }
+  html[data-intro] .fb-nav { visibility: hidden; animation: fb-failsafe-show 0s linear 8s forwards; }
+}
+
+@keyframes fb-failsafe-hide { to { visibility: hidden; } }
+@keyframes fb-failsafe-show { to { visibility: visible; } }
+
+/* A smoke video (the scene's `smoke` field) sits where the canvas stand-in would. */
+@layer components {
+  .fb-smoke-video { z-index: 2; pointer-events: none; mix-blend-mode: screen; }
+}

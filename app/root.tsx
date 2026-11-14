@@ -8,10 +8,10 @@ import {
   Meta,
   Scripts,
   ScrollRestoration,
+  useMatches,
   useRouteLoaderData,
 } from 'react-router';
 import type {Route} from './+types/root';
-import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
@@ -62,7 +62,8 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    {rel: 'icon', type: 'image/png', href: '/icon.png'},
+    {rel: 'apple-touch-icon', href: '/apple-icon.png'},
   ];
 }
 
@@ -142,17 +143,46 @@ function loadDeferredData({context}: Route.LoaderArgs) {
   };
 }
 
+/**
+ * Runs before first paint. data-motion marks that motion will run, which is whenever JavaScript
+ * does: the film plays for every visitor, whatever their reduced-motion setting (the client's
+ * call). Without JavaScript the static film stands. data-intro says S0 should play: home page,
+ * no deep link, not yet seen this session. Inline, so it carries Hydrogen's CSP nonce (D.3.4).
+ */
+const MOTION_FLAGS = `(function(){var d=document.documentElement;d.setAttribute("data-motion","");try{if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("fb-intro"))d.setAttribute("data-intro","")}catch(e){}})()`;
+
+/** Routes with `handle.film` (the home page) render without the skeleton's chrome and styles. */
+function useIsFilm() {
+  return useMatches().some(
+    (match) => (match.handle as {film?: boolean} | undefined)?.film,
+  );
+}
+
 export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();
+  const isFilm = useIsFilm();
 
   return (
-    <html lang="en">
+    // The pre-paint script adds data-motion / data-intro before hydration.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width,initial-scale=1,viewport-fit=cover"
+        />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{__html: MOTION_FLAGS}}
+        />
         <link rel="stylesheet" href={tailwindCss}></link>
-        <link rel="stylesheet" href={resetStyles}></link>
-        <link rel="stylesheet" href={appStyles}></link>
+        {isFilm ? null : (
+          <>
+            <link rel="stylesheet" href={resetStyles}></link>
+            <link rel="stylesheet" href={appStyles}></link>
+          </>
+        )}
         <Meta />
         <Links />
       </head>
@@ -167,6 +197,7 @@ export function Layout({children}: {children?: React.ReactNode}) {
 
 export default function App() {
   const data = useRouteLoaderData<RootLoader>('root');
+  const isFilm = useIsFilm();
 
   if (!data) {
     return <Outlet />;
@@ -178,9 +209,13 @@ export default function App() {
       shop={data.shop}
       consent={data.consent}
     >
-      <PageLayout {...data}>
+      {isFilm ? (
         <Outlet />
-      </PageLayout>
+      ) : (
+        <PageLayout {...data}>
+          <Outlet />
+        </PageLayout>
+      )}
     </Analytics.Provider>
   );
 }

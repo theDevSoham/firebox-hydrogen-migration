@@ -1,177 +1,61 @@
-import {Await, useLoaderData, Link} from 'react-router';
-import type {Route} from './+types/_index';
-import {Suspense} from 'react';
-import {Image} from '@shopify/hydrogen';
-import type {
-  FeaturedCollectionFragment,
-  RecommendedProductsQuery,
-} from 'storefrontapi.generated';
-import {ProductItem} from '~/components/ProductItem';
-import {MockShopNotice} from '~/components/MockShopNotice';
+import {useLoaderData} from 'react-router';
+import type {Route} from './+types/($locale)._index';
+import {Film} from '~/components/film/Film';
+import {toFilm} from '~/lib/film/model';
+import {STATIC_FILM} from '~/lib/film/static';
+import filmStyles from '~/styles/film.css?url';
+import antonFont from '~/assets/fonts/anton-latin-400-normal.woff2?url';
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: 'Hydrogen | Home'}];
+// The home page is the film. `handle.film` tells the root layout to drop the skeleton's header,
+// footer and stylesheets here (app/root.tsx).
+export const handle = {film: true};
+
+export const links: Route.LinksFunction = () => [
+  {rel: 'stylesheet', href: filmStyles},
+  // Only Anton is preloaded: it sets the S1 headline, the page's largest paint.
+  {
+    rel: 'preload',
+    href: antonFont,
+    as: 'font',
+    type: 'font/woff2',
+    crossOrigin: 'anonymous',
+  },
+];
+
+export const meta: Route.MetaFunction = ({data}) => {
+  const title = data?.seo.title ?? 'The Firebox';
+  const description = data?.seo.description ?? '';
+  const og = data?.seo.ogImage;
+  return [
+    {title},
+    {name: 'description', content: description},
+    {name: 'theme-color', content: '#160B06'},
+    {name: 'color-scheme', content: 'dark'},
+    {property: 'og:type', content: 'website'},
+    {property: 'og:site_name', content: 'The Firebox'},
+    {property: 'og:locale', content: 'en_IN'},
+    {property: 'og:title', content: title},
+    {property: 'og:description', content: description},
+    ...(og
+      ? [
+          {property: 'og:image', content: og.url},
+          {property: 'og:image:width', content: String(og.width)},
+          {property: 'og:image:height', content: String(og.height)},
+        ]
+      : []),
+    {name: 'twitter:card', content: 'summary_large_image'},
+  ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context}: Route.LoaderArgs) {
-  const [{collections}] = await Promise.all([
-    context.storefront.query(FEATURED_COLLECTION_QUERY),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
-
-  return {
-    isShopLinked: Boolean(context.env.PUBLIC_STORE_DOMAIN),
-    featuredCollection: collections.nodes[0],
-  };
-}
-
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  const recommendedProducts = context.storefront
-    .query(RECOMMENDED_PRODUCTS_QUERY)
-    .catch((error: Error) => {
-      // Log query errors, but don't throw them so the page can still render
-      console.error(error);
-      return null;
-    });
-
-  return {
-    recommendedProducts,
-  };
+export async function loader(_args: Route.LoaderArgs) {
+  // Build order step 1: a static result shaped exactly like FILM_QUERY (~/lib/film/query.ts).
+  // Step 3 replaces this line with:
+  //   const data = await context.storefront.query(FILM_QUERY, {cache: context.storefront.CacheShort()});
+  const data = STATIC_FILM;
+  return toFilm(data);
 }
 
 export default function Homepage() {
-  const data = useLoaderData<typeof loader>();
-  return (
-    <div className="home">
-      {data.isShopLinked ? null : <MockShopNotice />}
-      <FeaturedCollection collection={data.featuredCollection} />
-      <RecommendedProducts products={data.recommendedProducts} />
-    </div>
-  );
+  const film = useLoaderData<typeof loader>();
+  return <Film film={film} />;
 }
-
-function FeaturedCollection({
-  collection,
-}: {
-  collection: FeaturedCollectionFragment;
-}) {
-  if (!collection) return null;
-  const image = collection?.image;
-  return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
-      {image && (
-        <div className="featured-collection-image">
-          <Image
-            data={image}
-            sizes="100vw"
-            alt={image.altText || collection.title}
-          />
-        </div>
-      )}
-      <h1>{collection.title}</h1>
-    </Link>
-  );
-}
-
-function RecommendedProducts({
-  products,
-}: {
-  products: Promise<RecommendedProductsQuery | null>;
-}) {
-  return (
-    <section
-      className="recommended-products"
-      aria-labelledby="recommended-products"
-    >
-      <h2 id="recommended-products">Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Await resolve={products}>
-          {(response) => (
-            <div className="recommended-products-grid">
-              {response
-                ? response.products.nodes.map((product) => (
-                    <ProductItem key={product.id} product={product} />
-                  ))
-                : null}
-            </div>
-          )}
-        </Await>
-      </Suspense>
-      <br />
-    </section>
-  );
-}
-
-const FEATURED_COLLECTION_QUERY = `#graphql
-  fragment FeaturedCollection on Collection {
-    id
-    title
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    handle
-  }
-  query FeaturedCollection($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...FeaturedCollection
-      }
-    }
-  }
-` as const;
-
-const RECOMMENDED_PRODUCTS_QUERY = `#graphql
-  fragment RecommendedProduct on Product {
-    id
-    title
-    handle
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    featuredImage {
-      id
-      url
-      altText
-      width
-      height
-    }
-  }
-  query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...RecommendedProduct
-      }
-    }
-  }
-` as const;
