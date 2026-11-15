@@ -1,7 +1,7 @@
 // Today's original copy and art for every scene field (from firebox-official lib/content.ts and
-// lib/media.ts). Two jobs: ./static.ts serves them until the store exists, and ./model.ts falls
-// back to them whenever a field in Shopify is empty (PORTING-DECISIONS.md · D.2.5), so the page
-// never breaks if someone clears one. Step 2's setup script seeds the store from this file too.
+// lib/media.ts). Two jobs: scripts/shopify-setup.ts seeds the store from them, and ./model.ts
+// falls back to them whenever a field in Shopify is empty (PORTING-DECISIONS.md · D.2.5), so the
+// page never breaks if someone clears one. The art lives in public/placeholders/.
 //
 // Keys are the metaobject field keys from section B.4.
 

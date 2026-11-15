@@ -1,7 +1,6 @@
-// The one query the film will run (PORTING-DECISIONS.md · C): every scene_* entry, site_settings
+// The one query the film runs (PORTING-DECISIONS.md · C): every scene_* entry, site_settings
 // with its menu collections and their products, and the drops. Field keys are the ones in
-// section B. Until the store exists (build order step 3) the route serves a static result of
-// this exact shape from ./static.ts; codegen types both from this query.
+// section B; ./model.ts maps the result to the scenes' props.
 
 export const FILM_QUERY = `#graphql
   fragment FilmImage on Image {

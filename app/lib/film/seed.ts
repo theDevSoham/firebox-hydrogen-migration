@@ -2,8 +2,7 @@ import {PLACEHOLDER_ART, type ArtOriginal} from './originals';
 
 // The menu and drops the store starts with: firebox-official lib/seed.ts, moved onto
 // Products/Collections (PORTING-DECISIONS.md · B.1–B.2) and `drop` metaobjects (B.3).
-// ./static.ts serves them until the store exists; scripts/shopify-setup.ts seeds the store
-// from them. [Bracketed] facts stay placeholders until the client confirms them.
+// scripts/shopify-setup.ts seeds the store from them. [Bracketed] facts stay placeholders until the client confirms them.
 
 export type SectionTheme = 'ember' | 'night' | 'kraft' | 'bark';
 

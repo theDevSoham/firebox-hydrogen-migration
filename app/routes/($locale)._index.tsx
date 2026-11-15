@@ -2,7 +2,7 @@ import {useLoaderData} from 'react-router';
 import type {Route} from './+types/($locale)._index';
 import {Film} from '~/components/film/Film';
 import {toFilm} from '~/lib/film/model';
-import {STATIC_FILM} from '~/lib/film/static';
+import {FILM_QUERY} from '~/lib/film/query';
 import filmStyles from '~/styles/film.css?url';
 import antonFont from '~/assets/fonts/anton-latin-400-normal.woff2?url';
 
@@ -47,11 +47,12 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
-export async function loader(_args: Route.LoaderArgs) {
-  // Build order step 1: a static result shaped exactly like FILM_QUERY (~/lib/film/query.ts).
-  // Step 3 replaces this line with:
-  //   const data = await context.storefront.query(FILM_QUERY, {cache: context.storefront.CacheShort()});
-  const data = STATIC_FILM;
+export async function loader({context}: Route.LoaderArgs) {
+  // Everything the film shows, in one Storefront API query (PORTING-DECISIONS.md · C). Short
+  // cache, so edits in the Shopify admin show within about a minute (D.3.2).
+  const data = await context.storefront.query(FILM_QUERY, {
+    cache: context.storefront.CacheShort(),
+  });
   return toFilm(data);
 }
 
