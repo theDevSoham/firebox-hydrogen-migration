@@ -18,7 +18,7 @@ export function SmoothScroll() {
 
     // Pins change the page height: measure again once every scene is set up and the images have landed.
     const refresh = () => ScrollTrigger.refresh();
-    motionSettled().then(() => requestAnimationFrame(refresh));
+    void motionSettled().then(() => requestAnimationFrame(refresh));
     window.addEventListener('load', refresh);
 
     return () => {

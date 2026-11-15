@@ -15,13 +15,18 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: HydrogenRouterContextProvider,
 ) {
-  // Hydrogen's policy (PORTING-DECISIONS.md · D.3.4), plus Google Analytics' hosts only when a
-  // measurement ID is set. Fonts, scripts and the smoke worker are all same-origin already.
+  // Hydrogen's policy (PORTING-DECISIONS.md · D.3.4), plus Shopify's performance-metrics endpoint
+  // (Hydrogen's analytics report to it; the default policy doesn't list it) and Google Analytics'
+  // hosts only when a measurement ID is set. Fonts, scripts and the smoke worker are same-origin.
   const ga = gaMeasurementId(context.env) ? GA_CSP : null;
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+    connectSrc: [
+      "'self'",
+      'https://otlp-http-production.shopifysvc.com',
+      ...(ga?.connectSrc ?? []),
+    ],
     ...(ga && {
       scriptSrc: ["'self'", 'https://cdn.shopify.com', ...ga.scriptSrc],
-      connectSrc: ["'self'", ...ga.connectSrc],
       imgSrc: ["'self'", 'https://cdn.shopify.com', 'data:', ...ga.imgSrc],
     }),
     shop: {

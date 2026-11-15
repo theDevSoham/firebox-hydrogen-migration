@@ -29,11 +29,14 @@ function runIntro(overlay: HTMLElement) {
   nav.style.animation = 'none';
   try {
     sessionStorage.setItem('fb-intro', '1');
-  } catch {}
+  } catch {
+    // Storage blocked (private mode): the intro just plays again next visit.
+  }
 
   let timeline: gsap.core.Timeline | null = null;
-  const skip = () =>
-    timeline && timeline.progress() < 1 && timeline.progress(1);
+  const skip = () => {
+    if (timeline && timeline.progress() < 1) timeline.progress(1);
+  };
   intro = {skip};
 
   const finish = () => {
@@ -43,16 +46,16 @@ function runIntro(overlay: HTMLElement) {
     getLenis()?.start();
   };
 
-  motionReady().then(() => {
+  void motionReady().then(() => {
     const q = gsap.utils.selector(overlay);
 
     const lenis = getLenis();
     lenis?.scrollTo(0, {immediate: true});
     lenis?.stop();
     window.scrollTo(0, 0);
-    SKIP_EVENTS.forEach((type) =>
-      window.addEventListener(type, skip, {passive: true}),
-    );
+    SKIP_EVENTS.forEach((type) => {
+      window.addEventListener(type, skip, {passive: true});
+    });
 
     gsap.set(nav, {autoAlpha: 0, y: -20});
     timeline = gsap

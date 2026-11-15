@@ -66,7 +66,7 @@ export function S9Footer({
                   <a
                     href={instagramUrl(settings.instagram)}
                     target="_blank"
-                    rel="noopener"
+                    rel="noopener noreferrer"
                   >
                     @{settings.instagram}
                     <span className="sr-only">
@@ -87,6 +87,8 @@ export function S9Footer({
           <div className="s9-machine">
             <div data-machine>
               {[...machine, machine[0]].map((word, i) => (
+                // The first word repeats at the end (the loop's seam), so words can't be keys.
+                // eslint-disable-next-line react/no-array-index-key
                 <span key={i}>{word}</span>
               ))}
             </div>

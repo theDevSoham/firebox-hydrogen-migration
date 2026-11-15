@@ -40,7 +40,7 @@ export function CopyNumber({
 
   return (
     <>
-      <button type="button" className="s9-copy" onClick={copy}>
+      <button type="button" className="s9-copy" onClick={() => void copy()}>
         {state === 'copied'
           ? 'Copied'
           : state === 'selected'

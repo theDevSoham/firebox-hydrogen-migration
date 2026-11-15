@@ -45,7 +45,7 @@ export function S8Behind({
             className="s8-link"
             href={instagramUrl(instagram)}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
           >
             {text.linkText}
             <span className="sr-only"> (opens in a new tab)</span>

@@ -29,7 +29,7 @@ export function S7Motion({children}: {children: ReactNode}) {
     primeTransforms(pile, '.s7-w');
 
     if (!d) {
-      SHEAR.m.forEach(([word, x]) =>
+      SHEAR.m.forEach(([word, x]) => {
         gsap.fromTo(
           `.${word}`,
           {xPercent: 0},
@@ -43,16 +43,16 @@ export function S7Motion({children}: {children: ReactNode}) {
               scrub: true,
             },
           },
-        ),
-      );
-      pile.forEach((card) =>
+        );
+      });
+      pile.forEach((card) => {
         gsap.from(card, {
           y: 120,
           duration: 0.8,
           ease: 'power2.out',
           scrollTrigger: {trigger: card, start: 'top 95%'},
-        }),
-      );
+        });
+      });
       return;
     }
 
@@ -71,7 +71,7 @@ export function S7Motion({children}: {children: ReactNode}) {
         },
       })
       .from(pile, {yPercent: 150, stagger: 0.2, ease: 'power2.out'});
-    SHEAR.d.forEach(([word, x]) =>
+    SHEAR.d.forEach(([word, x]) => {
       gsap.fromTo(
         `.${word}`,
         {xPercent: 0},
@@ -85,11 +85,11 @@ export function S7Motion({children}: {children: ReactNode}) {
             scrub: true,
           },
         },
-      ),
-    );
+      );
+    });
 
     const reels = Array.from(scope.querySelectorAll<HTMLElement>('.fb-reel'));
-    const lift = (e: Event) =>
+    const lift = (e: Event) => {
       gsap.to(e.currentTarget as HTMLElement, {
         rotate: 0,
         scale: 1.04,
@@ -97,6 +97,7 @@ export function S7Motion({children}: {children: ReactNode}) {
         ease: 'power2.out',
         overwrite: 'auto',
       });
+    };
     const settle = (e: Event) => {
       const el = e.currentTarget as HTMLElement;
       if (el === document.activeElement && e.type === 'mouseleave') return;

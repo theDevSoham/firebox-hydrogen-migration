@@ -88,7 +88,7 @@ export function S7Kolkata({
           className="fb-yanone s7-handle"
           href={instagramUrl(instagram)}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
         >
           @{instagram}
           <span className="sr-only"> on Instagram (opens in a new tab)</span>

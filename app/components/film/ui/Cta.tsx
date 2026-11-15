@@ -46,7 +46,7 @@ export function Cta({
       href={href}
       className={classes}
       data-wa-item={item}
-      {...(external ? {target: '_blank', rel: 'noopener'} : {})}
+      {...(external ? {target: '_blank', rel: 'noopener noreferrer'} : {})}
     >
       {showGlyph && <WhatsAppGlyph />}
       {variant === 'text' ? (
