@@ -1,5 +1,7 @@
 name: Storefront 1000185546
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 permissions:
   contents: read
