@@ -1,7 +1,9 @@
 {
   "name": "hydrogen-test",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": [
+    "**/app/lib/film/gsap.ts"
+  ],
   "version": "2026.4.8",
   "type": "module",
   "scripts": {
@@ -12,7 +14,8 @@
     "typecheck": "react-router typegen && tsc --noEmit && tsc --noEmit -p scripts",
     "codegen": "shopify hydrogen codegen && react-router typegen",
     "shopify:setup": "tsx scripts/shopify-setup.ts",
-    "shopify:validate": "tsx scripts/shopify/validate-operations.ts"
+    "shopify:validate": "tsx scripts/shopify/validate-operations.ts",
+    "og:image": "tsx scripts/make-og-image.ts"
   },
   "prettier": "@shopify/prettier-config",
   "dependencies": {
@@ -33,9 +36,11 @@
     "@eslint/compat": "^1.2.5",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@fontsource/yanone-kaffeesatz": "^5.3.0",
     "@graphql-codegen/cli": "5.0.2",
     "@react-router/dev": "7.16.0",
     "@react-router/fs-routes": "7.16.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@shopify/cli": "3.93.2",
     "@shopify/hydrogen-codegen": "0.3.3",
     "@shopify/mini-oxygen": "4.2.3",
@@ -61,6 +66,7 @@
     "globals": "^15.14.0",
     "graphql-config": "^5.0.3",
     "prettier": "^3.4.2",
+    "satori": "^0.63.2",
     "tsx": "^4.23.15",
     "typescript": "^5.9.2",
     "vite": "^8.0.1"

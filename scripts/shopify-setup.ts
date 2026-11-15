@@ -403,7 +403,11 @@ async function syncImages(store: Store, options: Options): Promise<Images> {
       .map((folder) => join(folder, file))
       .find((p) => existsSync(p));
     if (!path) {
-      say('·', file, 'not found; its slots stay empty');
+      say(
+        '·',
+        file,
+        'not in the folder(s); store images for its slots are kept',
+      );
       continue;
     }
     // The alt text of the first slot that has one (Shopify keeps alt text on the file).

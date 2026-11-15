@@ -55,7 +55,12 @@ export const IMAGE_SLOTS: ImageSlot[] = [
   ...MENU_SEED.flatMap((section) =>
     section.products.flatMap((p) => slot(`product:${p.handle}`, p.image)),
   ),
-  ...DROPS_SEED.flatMap((drop) => slot(`drop:${drop.handle}`, drop.poster)),
+  ...DROPS_SEED.flatMap((drop) => slot(`drop:${drop.handle}`, drop.poster)), // Drawn by `npm run og:image` into public/brand/: upload with --images public/brand.
+  {
+    slot: 'site_settings.og_image',
+    file: 'og.png',
+    alt: 'The Firebox: low & slow, wood smoked',
+  },
 ];
 
 // ---------- products and collections (B.1, B.2) ----------
@@ -304,6 +309,7 @@ export function entries(refs: Refs): Entry[] {
         broadcast_link: o.site_settings.broadcast_link,
         instagram: o.site_settings.instagram,
         menu_sections: ids(COLLECTIONS.map((c) => refs.collection(c.handle))),
+        og_image: refs.image('site_settings.og_image'),
         seo_title: o.site_settings.seo_title,
         seo_description: o.site_settings.seo_description,
       }),

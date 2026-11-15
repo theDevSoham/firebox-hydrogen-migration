@@ -17,6 +17,8 @@ import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
+import {GoogleAnalytics} from './components/GoogleAnalytics';
+import {gaMeasurementId} from '~/lib/analytics';
 
 export type RootLoader = typeof loader;
 
@@ -64,6 +66,7 @@ export function links() {
     },
     {rel: 'icon', type: 'image/png', href: '/icon.png'},
     {rel: 'apple-touch-icon', href: '/apple-icon.png'},
+    {rel: 'manifest', href: '/manifest.webmanifest'},
   ];
 }
 
@@ -80,6 +83,7 @@ export async function loader(args: Route.LoaderArgs) {
     ...deferredData,
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    gaMeasurementId: gaMeasurementId(env),
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
@@ -216,6 +220,7 @@ export default function App() {
           <Outlet />
         </PageLayout>
       )}
+      <GoogleAnalytics id={data.gaMeasurementId} />
     </Analytics.Provider>
   );
 }

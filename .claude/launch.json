@@ -4,8 +4,24 @@
     {
       "name": "hydrogen-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "hydrogen-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "shopify",
+        "hydrogen",
+        "preview",
+        "--build",
+        "--port",
+        "3010"
+      ],
+      "port": 3010
     }
   ]
 }

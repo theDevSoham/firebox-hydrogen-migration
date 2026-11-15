@@ -86,18 +86,12 @@ export function linesOf(value: string): string[] {
     .filter(Boolean);
 }
 
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
-
 /**
- * The one metric that matters: a WhatsApp click, with the item name. Sent to GA4 as
- * `whatsapp_click` once GA is wired up (build order step 4, D.5.2); until then, logged in dev.
+ * The one metric that matters: a WhatsApp click, with the item name, sent to GA4 as
+ * `whatsapp_click` (app/lib/analytics.ts). Without a measurement ID it's only logged in dev.
  */
 export function trackWhatsAppClick(item: string): void {
-  // eslint-disable-next-line no-console -- dev-only trace until GA4 is wired up (step 4)
+  // eslint-disable-next-line no-console -- dev-only trace, to see clicks without GA
   if (import.meta.env.DEV) console.debug('[analytics] whatsapp_click', {item});
   window.gtag?.('event', 'whatsapp_click', {item});
 }
