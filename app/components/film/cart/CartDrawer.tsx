@@ -14,15 +14,21 @@ export function CartDrawer() {
   const ref = useRef<HTMLDialogElement>(null);
   const isOpen = ui?.isOpen ?? false;
 
+  // Lenis restarts here, on the state change, not in the dialog's close event: that event can
+  // arrive late or not at all (a background tab), which left the page unable to scroll. Only on
+  // an open → closed change, so it never starts Lenis while the intro holds it.
+  const wasOpen = useRef(false);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
+    if (isOpen) {
+      if (!dialog.open) dialog.showModal();
       getLenis()?.stop();
-    } else if (!isOpen && dialog.open) {
-      dialog.close();
+    } else if (wasOpen.current) {
+      if (dialog.open) dialog.close();
+      getLenis()?.start();
     }
+    wasOpen.current = isOpen;
   }, [isOpen]);
 
   return (
@@ -34,11 +40,8 @@ export function CartDrawer() {
       className="fb-cart fb-cart--drawer"
       aria-labelledby="fb-cart-title"
       data-lenis-prevent
-      // Escape, the close button and a click on the backdrop all end here.
-      onClose={() => {
-        getLenis()?.start();
-        ui?.close();
-      }}
+      // Escape closes the dialog natively; this brings the state in line.
+      onClose={() => ui?.close()}
       onClick={(event) => {
         if (event.target === event.currentTarget) ui?.close();
       }}

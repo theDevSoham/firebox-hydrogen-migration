@@ -276,7 +276,7 @@ export const METAOBJECT_DEFINITIONS: MetaobjectDef[] = [
     fields: [
       text('headline', 'Headline', 40),
       text('sub', 'Line under the headline', 90),
-      text('cta', 'Button', 30, 'Opens WhatsApp with the main number.'),
+      text('cta', 'Button', 30, 'Scrolls down to the menu.'),
       text('note', 'Small print beside the button', 60),
       image(
         'art',

@@ -14,6 +14,7 @@ import {S6Drops} from '~/components/film/scenes/S6Drops';
 import {S7Kolkata} from '~/components/film/scenes/S7Kolkata';
 import {S8Behind} from '~/components/film/scenes/S8Behind';
 import {S9Footer} from '~/components/film/scenes/S9Footer';
+import {InPageLinks} from '~/components/film/site/InPageLinks';
 import {SiteNav} from '~/components/film/site/SiteNav';
 import {JOIN_LIST_MESSAGE, waLink} from '~/lib/film/format';
 import type {Film as FilmData} from '~/lib/film/model';
@@ -39,6 +40,7 @@ export function Film({film}: {film: FilmData}) {
         </style>
       </noscript>
       <SmoothScroll />
+      <InPageLinks />
       <SiteNav />
       <S0Intro />
       <ThemeController />

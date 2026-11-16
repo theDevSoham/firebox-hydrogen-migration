@@ -58,7 +58,9 @@ html.lenis, html.lenis body { height: auto; }
   }
   .fb-skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); }
   /* The skip link's target takes focus so the next Tab starts inside it; it isn't a control, so no ring. */
-  #content:focus { outline: none; box-shadow: none; }
+  #content:focus,
+  #top:focus,
+  #menu:focus { outline: none; box-shadow: none; }
 
   /* Logo: the traced SVGs, sized by --logo-w */
   .fb-logo { display: block; width: var(--logo-w); height: auto; }
