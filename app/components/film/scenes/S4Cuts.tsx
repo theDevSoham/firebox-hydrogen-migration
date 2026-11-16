@@ -17,7 +17,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export function S4Cuts({chapters, whatsappNumber, nextDropHref}: S4CutsProps) {
   return (
     <S4Motion>
-      <section className="s4" data-scene="S4" aria-label="The cuts">
+      <section id="menu" className="s4" data-scene="S4" aria-label="The cuts">
         {chapters.map((section, i) => (
           <div
             key={section.id}

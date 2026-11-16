@@ -38,6 +38,12 @@ export const FILM_QUERY = `#graphql
     title
     description
     availableForSale
+    # The variant "Add to cart" adds. Menu items have one variant; a product with options adds
+    # its first available one.
+    selectedOrFirstAvailableVariant {
+      id
+      availableForSale
+    }
     featuredImage {
       ...FilmImage
     }

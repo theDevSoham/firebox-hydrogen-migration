@@ -3,18 +3,11 @@ import {S1Motion} from '~/components/film/motion/S1Motion';
 import {Cta} from '~/components/film/ui/Cta';
 import {Placeholder} from '~/components/film/ui/Placeholder';
 import {Smoke} from '~/components/film/media/Smoke';
-import {waLink} from '~/lib/film/format';
 import type {Film} from '~/lib/film/model';
 
 // S1 · The pit. Establishing shot: rooftop at dusk, one line, one button.
 
-export function S1Pit({
-  pit: text,
-  whatsappNumber,
-}: {
-  pit: Film['pit'];
-  whatsappNumber: string;
-}) {
+export function S1Pit({pit: text}: {pit: Film['pit']}) {
   return (
     <S1Motion>
       <section
@@ -40,7 +33,8 @@ export function S1Pit({
             </p>
           </div>
           <div className="s1-foot">
-            <Cta href={waLink(whatsappNumber)} size="l" item="Hero · Pre-order">
+            {/* Orders go through the cart now: the hero takes you to the menu. */}
+            <Cta href="#menu" size="l" glyph={false}>
               {text.cta}
             </Cta>
             <span className="fb-yanone s1-note">{text.note}</span>

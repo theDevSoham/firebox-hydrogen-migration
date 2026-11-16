@@ -11,7 +11,8 @@ export function getLocaleFromRequest(request: Request): I18nLocale {
   type I18nFromUrl = [I18nLocale['language'], I18nLocale['country']];
 
   let pathPrefix = '';
-  let [language, country]: I18nFromUrl = ['EN', 'US'];
+  // One market, India (D.1.3): carts are created for IN, so prices and checkout are in INR.
+  let [language, country]: I18nFromUrl = ['EN', 'IN'];
 
   if (/^[A-Z]{2}-[A-Z]{2}$/i.test(firstPathPart)) {
     pathPrefix = '/' + firstPathPart;

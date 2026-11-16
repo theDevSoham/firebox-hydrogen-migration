@@ -1,3 +1,6 @@
+import {CartDrawer} from '~/components/film/cart/CartDrawer';
+import {CartToast} from '~/components/film/cart/CartToast';
+import {CartUiProvider} from '~/components/film/cart/CartUi';
 import {ThemeController} from '~/components/film/site/ThemeController';
 import {WhatsAppTracker} from '~/components/film/site/WhatsAppTracker';
 import {S0Intro} from '~/components/film/motion/S0Intro';
@@ -25,7 +28,7 @@ export function Film({film}: {film: FilmData}) {
     waLink(settings.whatsappNumber, JOIN_LIST_MESSAGE);
 
   return (
-    <>
+    <CartUiProvider>
       <a className="fb-skip" href="#content">
         Skip to content
       </a>
@@ -36,12 +39,12 @@ export function Film({film}: {film: FilmData}) {
         </style>
       </noscript>
       <SmoothScroll />
-      <SiteNav whatsappNumber={settings.whatsappNumber} />
+      <SiteNav />
       <S0Intro />
       <ThemeController />
       <WhatsAppTracker />
       <main id="content" tabIndex={-1}>
-        <S1Pit pit={film.pit} whatsappNumber={settings.whatsappNumber} />
+        <S1Pit pit={film.pit} />
         <S2Manifesto manifesto={film.manifesto} />
         <S3NineHours nineHours={film.nineHours} />
         <S4Cuts
@@ -60,6 +63,8 @@ export function Film({film}: {film: FilmData}) {
         <S8Behind behind={film.behind} instagram={settings.instagram} />
       </main>
       <S9Footer footer={film.footer} settings={settings} />
-    </>
+      <CartToast />
+      <CartDrawer />
+    </CartUiProvider>
   );
 }

@@ -1,3 +1,4 @@
+import {AddToCart} from '~/components/film/cart/AddToCart';
 import {Img} from '~/components/film/media/Img';
 import {Cta} from '~/components/film/ui/Cta';
 import {formatPrice, renderMessage, waLink} from '~/lib/film/format';
@@ -6,6 +7,8 @@ import {NewSeal} from './NewSeal';
 import {SoldOutStamp} from './SoldOutStamp';
 
 // Menu item card in S4, option A: night card (handoff/04-components.md · DishCard).
+// In stock: "Add to cart". Sold out (inventory 0): a disabled "Sold out" button and the
+// drops-list link. No price yet: ask on WhatsApp.
 
 type DishCardProps = {
   item: MenuItem;
@@ -54,16 +57,28 @@ export function DishCard({item, whatsappNumber, nextDropHref}: DishCardProps) {
         <div className="fb-card__foot">
           <span className="fb-card__meta">{item.unit}</span>
           {soldOut ? (
-            <Cta
-              href={nextDropHref}
-              variant="text"
-              glyph={false}
-              item={item.name}
-              context={item.name}
-            >
-              Get the next drop
-            </Cta>
+            <div className="fb-card__actions">
+              <button
+                type="button"
+                className="fb-cta fb-cta--s fb-add"
+                disabled
+              >
+                Sold out<span className="sr-only">: {item.name}</span>
+              </button>
+              <Cta
+                href={nextDropHref}
+                variant="text"
+                glyph={false}
+                item={item.name}
+                context={item.name}
+              >
+                Get the next drop
+              </Cta>
+            </div>
+          ) : item.variantId && item.price !== null ? (
+            <AddToCart item={{...item, variantId: item.variantId}} />
           ) : (
+            // No price yet (a 0 price in Shopify): it can't go through checkout, so ask.
             <Cta
               href={waLink(
                 whatsappNumber,
@@ -74,7 +89,7 @@ export function DishCard({item, whatsappNumber, nextDropHref}: DishCardProps) {
               item={item.name}
               context={item.name}
             >
-              Order on WhatsApp
+              Ask on WhatsApp
             </Cta>
           )}
         </div>

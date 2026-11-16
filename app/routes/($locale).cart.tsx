@@ -2,10 +2,25 @@ import {useLoaderData, data, type HeadersFunction} from 'react-router';
 import type {Route} from './+types/cart';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
-import {CartMain} from '~/components/CartMain';
+import {CartContents} from '~/components/film/cart/CartContents';
+import {SiteNav} from '~/components/film/site/SiteNav';
+import filmStyles from '~/styles/film.css?url';
+
+// The cart page, in the film's look (`handle.film` drops the skeleton's chrome, app/root.tsx).
+// The film opens the drawer instead; this page is for links, no-JavaScript visits, and the
+// "back to cart" link from Shopify's checkout.
+export const handle = {film: true};
+
+export const links: Route.LinksFunction = () => [
+  {rel: 'stylesheet', href: filmStyles},
+];
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Cart`}];
+  return [
+    {title: 'Your box · The Firebox'},
+    {name: 'robots', content: 'noindex'},
+    {name: 'theme-color', content: '#160B06'},
+  ];
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;
@@ -105,9 +120,12 @@ export default function Cart() {
   const cart = useLoaderData<typeof loader>();
 
   return (
-    <div className="cart">
-      <h1>Cart</h1>
-      <CartMain layout="page" cart={cart} />
+    <div className="fb-cart-page">
+      <SiteNav home="/" />
+      <main id="content" className="fb-cart">
+        <h1 className="fb-anton fb-cart__title">Your box</h1>
+        <CartContents cart={cart ?? null} onBrowse={{href: '/#menu'}} />
+      </main>
     </div>
   );
 }

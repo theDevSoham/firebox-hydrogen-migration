@@ -5,6 +5,7 @@ import {useVariantUrl} from '~/lib/variants';
 import {Link} from 'react-router';
 import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
+import {BinIcon} from './film/ui/icons';
 import type {
   CartApiQueryFragment,
   CartLineFragment,
@@ -157,8 +158,13 @@ function CartLineRemoveButton({
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button disabled={disabled} type="submit">
-        Remove
+      <button
+        disabled={disabled}
+        type="submit"
+        aria-label="Remove"
+        title="Remove"
+      >
+        <BinIcon />
       </button>
     </CartForm>
   );

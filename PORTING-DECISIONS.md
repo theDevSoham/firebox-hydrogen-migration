@@ -243,7 +243,7 @@ Shopify caps a definition at 40 fields, and the page has ~60 text + 13 media fie
 
 | # | Decision | Options | Rec. | Why | Your call |
 |---|---|---|---|---|---|
-| 4.1 | Primary call to action | A) WhatsApp pre-order only · B) Shopify checkout · C) WhatsApp now, checkout per drop later | **C** | The port doesn't change the business flow | C |
+| 4.1 | Primary call to action | A) WhatsApp pre-order only · B) Shopify checkout · C) WhatsApp now, checkout per drop later | **C** | The port doesn't change the business flow | ~~C~~ **B for the menu** (changed 2026-11-17, see D.6) |
 | 4.2 | "Only 20" limit | A) Display only · B) Real inventory on the drop's linked product | **A** now, **B** with checkout | | A now, B with checkout |
 | 4.3 | Pick-up | A) Copy only · B) Shopify local pickup (Mukundapur) | **A** now, **B** with checkout | | A now, B with checkout |
 | 4.4 | Payments (India) | Shopify Payments / Razorpay / PayU | Decide at checkout time | | Decide at checkout time |
@@ -258,6 +258,17 @@ Shopify caps a definition at 40 fields, and the page has ~60 text + 13 media fie
 | 5.4 | Cancel Mongo Atlas / Cloudinary | A) After launch + one week · B) Immediately | **A** | Rollback safety | A |
 
 ---
+
+### D.6 Change after the freeze (2026-11-17)
+
+The menu now sells through **Shopify cart + Shopify-hosted checkout** instead of WhatsApp, so orders are managed in the Shopify admin.
+
+- Menu cards: **Add to cart** when in stock; a disabled **Sold out** button (plus "Get the next drop") at inventory 0 (D.2.3); **Ask on WhatsApp** only when the price is 0.
+- The nav's WhatsApp button is now the **Cart** button (drawer on the film, `/cart` page without JavaScript). The hero button goes to the menu.
+- Checkout is Shopify's own page (`cart.checkoutUrl`); there is no checkout page in this repo. Payment, pickup and taxes are set in the Shopify admin.
+- Drops (S6) and the footer number stay on WhatsApp until a drop links a product (B.3 `product`).
+- Default country is India (D.1.3), so carts and checkout are in INR.
+- Still to settle in the admin: the payment provider (D.4.4: Razorpay / PayU / Cashfree, since Shopify Payments isn't offered in India), local pickup at Mukundapur (D.4.3), and inventory tracking on every product.
 
 ## E. Build order
 

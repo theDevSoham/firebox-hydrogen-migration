@@ -25,6 +25,8 @@ export type MenuItem = {
   /** Whole rupees, shown as 549/-. Null (a 0 price in Shopify): still to come from the client. */
   price: number | null;
   unit: string;
+  /** The variant "Add to cart" adds. Null: nothing to add (no variant published). */
+  variantId: string | null;
   soldOut: boolean;
   isNew: boolean;
   image: FilmImage | null;
@@ -188,7 +190,11 @@ function toMenu(settings: FilmQuery['settings']): MenuChapter[] {
           description: p.description,
           price: Number(p.priceRange.minVariantPrice.amount) || null,
           unit: p.unit?.value ?? '',
-          soldOut: !p.availableForSale,
+          variantId: p.selectedOrFirstAvailableVariant?.id ?? null,
+          // Inventory 0 (D.2.3): Shopify marks it unavailable and refuses it at checkout too.
+          soldOut:
+            !p.availableForSale ||
+            !p.selectedOrFirstAvailableVariant?.availableForSale,
           isNew: p.isNew?.value === 'true',
           image: p.featuredImage
             ? {

@@ -34,6 +34,27 @@ declare global {
   }
 }
 
+/**
+ * A GA4 ecommerce event (`add_to_cart`, `begin_checkout`), in INR. Shopify's own analytics see
+ * the same cart changes through Analytics.Provider. Without a measurement ID it's only logged in dev.
+ */
+export function trackCommerce(
+  event: 'add_to_cart' | 'begin_checkout',
+  params: {
+    value: number;
+    items: {
+      item_id: string;
+      item_name: string;
+      price?: number;
+      quantity: number;
+    }[];
+  },
+) {
+  // eslint-disable-next-line no-console -- dev-only trace, to see events without GA
+  if (import.meta.env.DEV) console.debug(`[analytics] ${event}`, params);
+  window.gtag?.('event', event, {currency: 'INR', ...params});
+}
+
 /** gtag's queue: calls made before gtag.js loads wait in dataLayer and run once it arrives. */
 export function installGtag(id: string) {
   if (window.gtag) return;

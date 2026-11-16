@@ -1,8 +1,7 @@
 import {Logo} from '~/components/film/brand/Logo';
-import {Cta} from '~/components/film/ui/Cta';
-import {waLink} from '~/lib/film/format';
+import {CartButton} from '~/components/film/cart/CartButton';
 
-// Fixed bar: logo plus one CTA (handoff/04-components.md · SiteNav).
+// Fixed bar: logo plus the cart button (handoff/04-components.md · SiteNav).
 // The chapter theme lives in data-theme; ThemeController changes it while scrolling,
 // and CSS picks the logo and CTA colourway for it.
 
@@ -13,18 +12,21 @@ const TAG_W = 'clamp(90px, 7.5vw, 108px)';
 const LOGO_W = 'clamp(112px, 9.2vw, 132px)';
 
 export function SiteNav({
-  whatsappNumber,
   theme = 'night',
+  home = '#top',
 }: {
-  whatsappNumber: string;
   theme?: NavTheme;
+  /** The logo's link: the top of the film, or the home page from /cart. */
+  home?: string;
 }) {
   return (
     <header className="fb-nav" data-theme={theme} data-site-nav>
       <a
         className="fb-nav__home"
-        href="#top"
-        aria-label="The Firebox, back to the top"
+        href={home}
+        aria-label={
+          home === '#top' ? 'The Firebox, back to the top' : 'The Firebox, home'
+        }
       >
         <span data-logo="tag">
           <Logo variant="tag" width={TAG_W} alt="" />
@@ -44,10 +46,7 @@ export function SiteNav({
           />
         </span>
       </a>
-      <Cta href={waLink(whatsappNumber)} item="Nav · Pre-order">
-        <span className="hidden md:inline">Pre-order on WhatsApp</span>
-        <span className="md:hidden">Pre-order</span>
-      </Cta>
+      <CartButton />
     </header>
   );
 }
