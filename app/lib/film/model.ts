@@ -1,5 +1,6 @@
 import type {
   FilmCollectionFragment,
+  FilmMenuGroupFragment,
   FilmFileFragment,
   FilmQuery,
   MenuQuery,
@@ -45,6 +46,16 @@ export type MenuChapter = {
   title: string;
   theme: SectionTheme;
   items: MenuItem[];
+};
+
+/** A top-level menu collection (Chicken, Pork, Buff) and the chapters under it. */
+export type MenuCategory = {
+  id: string;
+  title: string;
+  theme: SectionTheme;
+  /** False when it has no sub-collections and is its own (one) chapter. */
+  nested: boolean;
+  chapters: MenuChapter[];
 };
 
 export type DropStatus = 'announced' | 'live' | 'soldout';
@@ -181,49 +192,89 @@ const DROP_RANK: Record<DropStatus, number> = {
   soldout: 2,
 };
 
-/** site_settings.menu_sections, as the film and /menu both query it (FilmCollection). */
+/** site_settings.menu_sections, as the film and /menu both query it (FilmMenuGroup). */
 type MenuSections =
-  | {references?: {nodes: ({} | FilmCollectionFragment)[]} | null}
+  | {references?: {nodes: ({} | FilmMenuGroupFragment)[]} | null}
   | null
   | undefined;
 
-function toMenu(field: MenuSections): MenuChapter[] {
-  const sections = field?.references?.nodes ?? [];
-  return sections
-    .filter((node): node is FilmCollectionFragment => 'handle' in node)
-    .map((section) => {
-      const theme = section.theme?.value as SectionTheme | undefined;
+const toTheme = (value: string | undefined, fallback: SectionTheme) =>
+  value && THEMES.includes(value as SectionTheme)
+    ? (value as SectionTheme)
+    : fallback;
+
+function toChapter(
+  section: FilmCollectionFragment,
+  fallbackTheme: SectionTheme,
+): MenuChapter {
+  return {
+    id: section.handle,
+    title: section.title,
+    theme: toTheme(section.theme?.value, fallbackTheme),
+    items: section.products.nodes.map((p): MenuItem => ({
+      id: p.handle,
+      name: p.title,
+      description: p.description,
+      price: Number(p.priceRange.minVariantPrice.amount) || null,
+      unit: p.unit?.value ?? '',
+      variantId: p.selectedOrFirstAvailableVariant?.id ?? null,
+      // Inventory 0 (D.2.3): Shopify marks it unavailable and refuses it at checkout too.
+      soldOut:
+        !p.availableForSale ||
+        !p.selectedOrFirstAvailableVariant?.availableForSale,
+      isNew: p.isNew?.value === 'true',
+      image: p.featuredImage
+        ? {
+            url: p.featuredImage.url,
+            width: p.featuredImage.width ?? 0,
+            height: p.featuredImage.height ?? 0,
+            alt: p.featuredImage.altText ?? p.title,
+          }
+        : null,
+      whatsappMessage:
+        p.whatsappMessage?.value ||
+        `Hi Firebox! I'd like to pre-order ${p.title} × 1.`,
+    })),
+  };
+}
+
+/**
+ * The menu's top level, in admin order, each with its sub-collections (`firebox.subsections`) as
+ * chapters. A top-level collection without any is a chapter itself, so a flat list of chapters
+ * (how the store started) still works. Empty chapters and categories are left out.
+ */
+function toCategories(field: MenuSections): MenuCategory[] {
+  const groups = (field?.references?.nodes ?? []).filter(
+    (node): node is FilmMenuGroupFragment => 'handle' in node,
+  );
+  return groups
+    .map((group): MenuCategory => {
+      const theme = toTheme(group.theme?.value, 'night');
+      const subs = (group.subsections?.references?.nodes ?? []).filter(
+        (node): node is FilmCollectionFragment => 'handle' in node,
+      );
+      const chapters = (subs.length ? subs : [group])
+        .map((section) => toChapter(section, theme))
+        .filter((chapter) => chapter.items.length > 0);
       return {
-        id: section.handle,
-        title: section.title,
-        theme: theme && THEMES.includes(theme) ? theme : 'night',
-        items: section.products.nodes.map((p): MenuItem => ({
-          id: p.handle,
-          name: p.title,
-          description: p.description,
-          price: Number(p.priceRange.minVariantPrice.amount) || null,
-          unit: p.unit?.value ?? '',
-          variantId: p.selectedOrFirstAvailableVariant?.id ?? null,
-          // Inventory 0 (D.2.3): Shopify marks it unavailable and refuses it at checkout too.
-          soldOut:
-            !p.availableForSale ||
-            !p.selectedOrFirstAvailableVariant?.availableForSale,
-          isNew: p.isNew?.value === 'true',
-          image: p.featuredImage
-            ? {
-                url: p.featuredImage.url,
-                width: p.featuredImage.width ?? 0,
-                height: p.featuredImage.height ?? 0,
-                alt: p.featuredImage.altText ?? p.title,
-              }
-            : null,
-          whatsappMessage:
-            p.whatsappMessage?.value ||
-            `Hi Firebox! I'd like to pre-order ${p.title} × 1.`,
-        })),
+        id: group.handle,
+        title: group.title,
+        theme,
+        nested: subs.length > 0,
+        chapters,
       };
     })
-    .filter((chapter) => chapter.items.length > 0);
+    .filter((category) => category.chapters.length > 0);
+}
+
+/** The film's S4 keeps one flat run of chapters: every category's, in order, each once. */
+function toMenu(field: MenuSections): MenuChapter[] {
+  const seen = new Set<string>();
+  return toCategories(field)
+    .flatMap((category) => category.chapters)
+    .filter(
+      (chapter) => !seen.has(chapter.id) && Boolean(seen.add(chapter.id)),
+    );
 }
 
 /** Live first, then announced, then sold out (newest first). Archived never shows; drafts never arrive. */
@@ -298,7 +349,7 @@ function toSettings(settings: SettingsFields | null | undefined): Settings {
 export function toMenuPage(data: MenuQuery) {
   return {
     settings: toSettings(data.settings),
-    menu: toMenu(data.settings?.menu_sections),
+    menu: toCategories(data.settings?.menu_sections),
   };
 }
 
@@ -365,7 +416,7 @@ export function toFilm(data: FilmQuery) {
       headline: text(pit?.headline, o.scene_pit.headline),
       sub: text(pit?.sub, o.scene_pit.sub),
       cta: text(pit?.cta, o.scene_pit.cta),
-      note: text(pit?.note, o.scene_pit.note),
+      menuCta: text(pit?.menu_cta, o.scene_pit.menu_cta),
       art: pitArt,
       // Shares the wide art's description.
       artPhone: {

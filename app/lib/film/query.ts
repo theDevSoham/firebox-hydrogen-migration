@@ -3,7 +3,7 @@
 // section B; ./model.ts maps the result to the scenes' props. /menu and the root layout run
 // the two small queries at the bottom, sharing the film's menu fragments.
 
-/** The menu's collections and products, shared by the film (S4) and /menu. */
+/** The menu's collections (top level, sub-collections) and products, shared by the film (S4) and /menu. */
 const MENU_FRAGMENTS = `#graphql
   fragment FilmImage on Image {
     url
@@ -54,6 +54,21 @@ const MENU_FRAGMENTS = `#graphql
     products(first: 50, sortKey: MANUAL) {
       nodes {
         ...FilmProduct
+      }
+    }
+  }
+
+  # A top-level menu collection (site_settings.menu_sections) and the sub-collections under it.
+  # Without any, it's a chapter itself (its own products, above).
+  fragment FilmMenuGroup on Collection {
+    ...FilmCollection
+    subsections: metafield(namespace: "firebox", key: "subsections") {
+      references(first: 12) {
+        nodes {
+          ... on Collection {
+            ...FilmCollection
+          }
+        }
       }
     }
   }
@@ -128,10 +143,10 @@ export const FILM_QUERY = `#graphql
       broadcast_link: field(key: "broadcast_link") { value }
       instagram: field(key: "instagram") { value }
       menu_sections: field(key: "menu_sections") {
-        references(first: 20) {
+        references(first: 10) {
           nodes {
             ... on Collection {
-              ...FilmCollection
+              ...FilmMenuGroup
             }
           }
         }
@@ -145,7 +160,7 @@ export const FILM_QUERY = `#graphql
       headline: field(key: "headline") { value }
       sub: field(key: "sub") { value }
       cta: field(key: "cta") { value }
-      note: field(key: "note") { value }
+      menu_cta: field(key: "menu_cta") { value }
       art: field(key: "art") { ...FilmFile }
       art_phone: field(key: "art_phone") { ...FilmFile }
       smoke: field(key: "smoke") { ...FilmFile }
@@ -241,10 +256,10 @@ export const MENU_QUERY = `#graphql
       broadcast_link: field(key: "broadcast_link") { value }
       instagram: field(key: "instagram") { value }
       menu_sections: field(key: "menu_sections") {
-        references(first: 20) {
+        references(first: 10) {
           nodes {
             ... on Collection {
-              ...FilmCollection
+              ...FilmMenuGroup
             }
           }
         }

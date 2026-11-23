@@ -140,19 +140,7 @@ html.lenis, html.lenis body { height: auto; }
     .fb-nav[data-theme] .fb-cta:hover { background: var(--fb-ember); box-shadow: 0 0 0 3px var(--fb-amber); }
   }
   .fb-nav[data-theme] .fb-cta:focus-visible { box-shadow: 0 0 0 7px var(--fb-amber); }
-  /* Menu: a text link beside the cart button, cream on dark chapters, char on light ones */
   .fb-nav__end { display: flex; align-items: center; gap: clamp(6px, 1.6vw, 20px); }
-  .fb-nav__link {
-    display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; color: var(--fb-cream); text-decoration: none;
-    font: 700 20px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase;
-  }
-  .fb-nav__link > span { padding-top: 3px; border-bottom: 2px solid transparent; transition: border-color .25s; }
-  .fb-nav[data-theme="light"] .fb-nav__link,
-  .fb-nav[data-theme="kraft"] .fb-nav__link { color: var(--fb-char); }
-  .fb-nav__link[aria-current="page"] > span { border-bottom-color: var(--fb-ember); }
-  @media (hover: hover) {
-    .fb-nav__link:hover > span { border-bottom-color: currentColor; }
-  }
   @media (max-width: 767px) {
     .fb-nav .fb-cta { padding: 0 14px; font-size: 18px; gap: 8px; }
     .fb-nav .fb-cta > svg { width: 20px; height: 20px; }
@@ -208,7 +196,32 @@ html.lenis, html.lenis body { height: auto; }
     position: absolute; z-index: 3; left: var(--gutter-l); right: var(--gutter-r); bottom: calc(5vh + env(safe-area-inset-bottom, 0px));
     display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px;
   }
-  .s1-note { padding: 9px 12px 7px; background: var(--fb-charcoal); color: var(--fb-cream); font-size: 18px; }
+  /* The menu button: cream against the red one, stamped with a hard char shadow. Every few
+     seconds a glint crosses it and the arrow nudges toward the menu. */
+  .s1-menu {
+    position: relative; overflow: hidden; isolation: isolate;
+    background: var(--fb-cream); color: var(--fb-char);
+    box-shadow: inset 0 0 0 2px var(--fb-char), 5px 5px 0 var(--fb-char);
+  }
+  .s1-menu > svg { width: 16px; height: 16px; transition: transform .25s var(--ease-rise); }
+  .s1-menu::after {
+    content: ""; position: absolute; z-index: -1; inset: 0 auto 0 0; width: 45%;
+    background: linear-gradient(100deg, transparent, rgb(183 126 7 / .45), transparent);
+    transform: translateX(-120%) skewX(-18deg); pointer-events: none;
+  }
+  @media (hover: hover) {
+    .s1-menu:hover {
+      background: var(--fb-cream); color: var(--fb-char); transform: translate(-2px, -2px) rotate(-1.5deg);
+      box-shadow: inset 0 0 0 2px var(--fb-char), 8px 8px 0 var(--fb-ember);
+    }
+    .s1-menu:hover > svg { transform: translateX(5px); }
+  }
+  .s1-menu:focus-visible { box-shadow: inset 0 0 0 2px var(--fb-char), 0 0 0 7px var(--fb-amber); }
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-motion] .s1-menu::after { animation: s1-glint 4.5s var(--ease-loop) 1.2s infinite; }
+    html[data-motion] .s1-menu > svg { animation: s1-nudge 4.5s var(--ease-rise) 1.2s infinite; }
+    html[data-motion] .s1-menu:hover > svg { animation: none; }
+  }
   .s1 .fb-ph { right: var(--gutter-r); top: calc(var(--nav-h) + 12px); }
 
   /* ---------- S2 · Ash to ember ---------- */
@@ -456,7 +469,7 @@ html.lenis, html.lenis body { height: auto; }
   @media (max-width: 767px) {
     .s1-h { font-size: 64px; }
     .s1-foot .fb-cta { flex: 1 1 100%; }
-    .s1-note { font-size: 16px; }
+    .s1-foot .s1-menu { margin-right: 5px; }
     .s1 .fb-ph { top: auto; bottom: calc(5vh + 140px); }
 
     .s3 { height: auto; min-height: 0; }
@@ -788,6 +801,25 @@ html:not([data-motion]) .fb-seal svg { animation: none; }
   .mn-card { min-width: 0; }
   .mn-card > .fb-card { height: 100%; }
 
+  /* Sub-collections (Belly, Ribs…) under a top-level title: a row of links, then a heading each */
+  .mn-subs ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 clamp(24px, 5vh, 48px); padding: 0; list-style: none; }
+  .mn-sub-link {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+    border: 2px solid var(--title-ink); border-radius: 999px; color: var(--title-ink); font-size: 20px; text-decoration: none;
+  }
+  @media (hover: hover) {
+    .mn-sub-link:hover { background: var(--title-ink); color: var(--fb-char); }
+    .mn-section[data-theme="kraft"] .mn-sub-link:hover { color: var(--fb-cream); }
+  }
+  .mn-sub { scroll-margin-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 53px + 16px); }
+  .mn-sub + .mn-sub { margin-top: clamp(40px, 8vh, 88px); }
+  .mn-sub:focus { outline: none; box-shadow: none; }
+  .mn-sub-title {
+    display: flex; align-items: center; gap: 16px; margin: 0 0 clamp(16px, 3vh, 28px);
+    color: var(--title-ink); font-size: clamp(32px, 5vw, 64px); line-height: .9;
+  }
+  .mn-sub-title::after { content: ""; flex: 1; height: 2px; background: currentColor; opacity: .35; transform-origin: 0 50%; }
+
   .mn-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px var(--gutter-r) 96px var(--gutter-l); }
   .mn-empty p { margin: 0; font-size: var(--fs-accent); line-height: 1.05; }
 
@@ -833,6 +865,12 @@ html:not([data-motion]) .fb-seal svg { animation: none; }
     }
     html[data-motion] .mn[data-reveal] .mn-card:not(.is-in) { opacity: 0; transform: translateY(48px); }
     html[data-motion] .mn[data-reveal] .mn-card:not(.is-in) .fb-card__img { clip-path: inset(0 0 100% 0); }
+
+    /* Sub-collection headings slide in, their rule drawing out after them. */
+    html[data-motion] .mn[data-reveal] .mn-sub-title { transition: opacity .5s var(--ease-rise), transform .7s var(--ease-rise); }
+    html[data-motion] .mn[data-reveal] .mn-sub-title::after { transition: transform .9s var(--ease-wipe) .15s; }
+    html[data-motion] .mn[data-reveal] .mn-sub-title:not(.is-in) { opacity: 0; transform: translateX(-32px); }
+    html[data-motion] .mn[data-reveal] .mn-sub-title:not(.is-in)::after { transform: scaleX(0); }
   }
 
   /* Chapter titles swell in as they enter: tied to scroll where the browser can, else on entry. */
@@ -851,4 +889,6 @@ html:not([data-motion]) .fb-seal svg { animation: none; }
   }
 }
 
+@keyframes s1-glint { 0% { transform: translateX(-120%) skewX(-18deg); } 30%, 100% { transform: translateX(260%) skewX(-18deg); } }
+@keyframes s1-nudge { 0%, 24%, 40%, 100% { transform: none; } 30% { transform: translateX(6px); } 35% { transform: translateX(1px); } }
 @keyframes mn-swell { from { opacity: 0; transform: scale(.6) translateY(.12em); } }

@@ -1,9 +1,8 @@
 import {Logo} from '~/components/film/brand/Logo';
 import {CartButton} from '~/components/film/cart/CartButton';
 
-// Fixed bar: logo, the Menu link and the cart button (handoff/04-components.md · SiteNav).
-// Menu is a plain link to /menu, a page load like the cart's: the film's in-page links
-// (#menu, InPageLinks) are a separate thing and unaffected.
+// Fixed bar: logo and the cart button (handoff/04-components.md · SiteNav). /menu is reached
+// from the hero's menu button and the footer.
 // The chapter theme lives in data-theme; ThemeController changes it while scrolling,
 // and CSS picks the logo and CTA colourway for it.
 
@@ -16,13 +15,10 @@ const LOGO_W = 'clamp(112px, 9.2vw, 132px)';
 export function SiteNav({
   theme = 'night',
   home = '#top',
-  current,
 }: {
   theme?: NavTheme;
   /** The logo's link: the top of the film, or the home page from /cart. */
   home?: string;
-  /** The page this nav sits on, when the nav links to it. */
-  current?: 'menu';
 }) {
   return (
     <header className="fb-nav" data-theme={theme} data-site-nav>
@@ -52,13 +48,6 @@ export function SiteNav({
         </span>
       </a>
       <div className="fb-nav__end">
-        <a
-          className="fb-nav__link"
-          href="/menu"
-          aria-current={current === 'menu' ? 'page' : undefined}
-        >
-          <span>Menu</span>
-        </a>
         <CartButton />
       </div>
     </header>

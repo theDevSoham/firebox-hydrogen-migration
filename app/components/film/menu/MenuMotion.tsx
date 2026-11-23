@@ -7,7 +7,7 @@ import {motionOn} from '~/lib/film/motion';
 //    below the sticky bars; the one showing most marks its chip (aria-current, the ember
 //    underline), scrolls the chip into view in its row, and sets main[data-theme], which the
 //    background colour follows.
-// 2. Reveals. Cards (and, where scroll-driven animations aren't supported, chapter titles) get
+// 2. Reveals. Cards and sub-collection headings (and, where scroll-driven animations aren't supported, chapter titles) get
 //    .is-in as they come into view, a few at a time, numbered with --i for the stagger. Whatever
 //    is already on screen (or above it) when this runs is marked first, so nothing that's
 //    painted blinks out; only then does main[data-reveal] switch the hidden start states on.
@@ -80,7 +80,7 @@ export function MenuMotion() {
     const scrollDriven =
       typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()');
     const targets = [
-      ...main.querySelectorAll<HTMLElement>('[data-mn-card]'),
+      ...main.querySelectorAll<HTMLElement>('[data-mn-card], [data-mn-rise]'),
       ...(scrollDriven ? [] : main.querySelectorAll<HTMLElement>('.mn-title')),
     ];
     const reveal = new IntersectionObserver(

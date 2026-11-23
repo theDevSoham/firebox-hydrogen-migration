@@ -33,6 +33,7 @@ export const ORIGINALS = {
     sub: 'Kolkata’s first low & slow, wood smoked barbeque.',
     cta: 'See what’s on the pit',
     note: 'Pre-order only · pick up in Mukundapur',
+    menu_cta: 'Explore what’s on the menu',
     art: art('ca-01-pit-dusk.jpg', 1221, 768, PIT_ALT),
     art_phone: art('ca-01b-pit-dusk-mobile.jpg', 613, 1376, PIT_ALT),
   },

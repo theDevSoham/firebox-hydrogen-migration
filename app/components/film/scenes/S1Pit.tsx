@@ -1,6 +1,7 @@
 import {ArtPicture} from '~/components/film/media/ArtPicture';
 import {S1Motion} from '~/components/film/motion/S1Motion';
 import {Cta} from '~/components/film/ui/Cta';
+import {Arrowhead} from '~/components/film/ui/icons';
 import {Placeholder} from '~/components/film/ui/Placeholder';
 import {Smoke} from '~/components/film/media/Smoke';
 import type {Film} from '~/lib/film/model';
@@ -33,11 +34,15 @@ export function S1Pit({pit: text}: {pit: Film['pit']}) {
             </p>
           </div>
           <div className="s1-foot">
-            {/* Orders go through the cart now: the hero takes you to the menu. */}
+            {/* Orders go through the cart now: the red button glides to the film's menu, the
+                cream one opens the full menu page (/menu). */}
             <Cta href="#menu" size="l" glyph={false}>
               {text.cta}
             </Cta>
-            <span className="fb-yanone s1-note">{text.note}</span>
+            <a className="fb-cta fb-cta--l s1-menu" href="/menu">
+              <span className="s1-menu__label">{text.menuCta}</span>
+              <Arrowhead />
+            </a>
           </div>
           <Placeholder>Concept art · smoke is a stand-in for video</Placeholder>
         </div>

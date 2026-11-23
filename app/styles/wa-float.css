@@ -25,10 +25,10 @@
   html:has(.fb-cart--drawer[open]) .fb-wa-float { visibility: hidden; }
 
   /* The film's own bottom-right corners make room: S7's Instagram handle lifts above the button,
-     and on phones S1's note stops short of it. */
+     and on phones S1's menu button stops short of it. */
   html:has(.fb-wa-float) .s7-handle { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
   @media (max-width: 767px) {
-    html:has(.fb-wa-float) .s1-note { margin-right: 64px; }
+    html:has(.fb-wa-float) .s1-foot .s1-menu { margin-right: 64px; }
   }
 
   /* A small rise once the page is up; only when motion runs and the visitor hasn't asked for less. */

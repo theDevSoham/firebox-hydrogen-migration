@@ -131,6 +131,15 @@ export const METAFIELD_DEFINITIONS: MetafieldDef[] = [
     description: 'The colour of this menu chapter on the site.',
     validations: [choices('ember', 'night', 'kraft', 'bark')],
   },
+  {
+    namespace: 'firebox',
+    ownerType: 'COLLECTION',
+    key: 'subsections',
+    name: 'Sub-collections',
+    type: 'list.collection_reference',
+    description:
+      'For a top-level menu collection (Chicken, Pork, Buff): the collections shown under it, in this order. Drag to reorder. Empty: this collection\'s own dishes are shown.',
+  },
 ];
 
 // ---------- B.3–B.5 · metaobjects, in the order they must be created ----------
@@ -277,7 +286,18 @@ export const METAOBJECT_DEFINITIONS: MetaobjectDef[] = [
       text('headline', 'Headline', 40),
       text('sub', 'Line under the headline', 90),
       text('cta', 'Button', 30, 'Scrolls down to the menu.'),
-      text('note', 'Small print beside the button', 60),
+      text(
+        'note',
+        'Small print (not shown)',
+        60,
+        'No longer shown: the menu button took its place.',
+      ),
+      text(
+        'menu_cta',
+        'Menu button',
+        30,
+        'The cream button beside the main one. Opens the full menu page.',
+      ),
       image(
         'art',
         'Art, tablets and computers',
@@ -482,7 +502,7 @@ export const METAOBJECT_DEFINITIONS: MetaobjectDef[] = [
         name: 'Menu chapters',
         type: 'list.collection_reference',
         description:
-          'The collections shown in "The cuts", in this order. Drag to reorder.',
+          'The top-level menu collections (Chicken, Pork, Buff), in this order. Drag to reorder. Each one\'s sub-collections are set on the collection itself.',
       },
       image(
         'og_image',

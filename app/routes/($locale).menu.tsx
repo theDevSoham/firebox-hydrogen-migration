@@ -16,7 +16,7 @@ export const links: Route.LinksFunction = () => [
 export const meta: Route.MetaFunction = ({data}) => {
   const title = 'Menu · The Firebox';
   if (!data) return [{title}];
-  const chapters = data.menu.map((chapter) => chapter.title).join(', ');
+  const chapters = data.menu.map((category) => category.title).join(', ');
   const description = `${chapters ? `${chapters}. ` : ''}Low & slow, wood smoked barbeque from The Firebox, ${data.settings.locationLabel}. Add to your box and check out online.`;
   return [
     {title},
@@ -45,5 +45,5 @@ export async function loader({context, request}: Route.LoaderArgs) {
 
 export default function Menu() {
   const {menu, settings} = useLoaderData<typeof loader>();
-  return <MenuPage chapters={menu} settings={settings} />;
+  return <MenuPage categories={menu} settings={settings} />;
 }

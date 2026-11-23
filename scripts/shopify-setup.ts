@@ -30,6 +30,7 @@ import {
 } from './shopify/admin';
 import {
   COLLECTIONS,
+  GROUPS,
   IMAGE_SLOTS,
   PRODUCTS,
   entries,
@@ -169,6 +170,7 @@ async function main() {
   await syncDefinitions(store);
   const images = await syncImages(store, options);
   const collectionIds = await syncCollections(store);
+  await syncGroups(store, collectionIds);
   const {created: newProducts, ids: productIds} = await syncProducts(
     store,
     options,
@@ -502,6 +504,68 @@ async function syncCollections(store: Store): Promise<CollectionIds> {
   return {ids, created};
 }
 
+/**
+ * The menu's top level (Chicken, Pork, Buff): collections that list their sub-collections in
+ * `firebox.subsections`. Created with the seed's list; one that already exists is left as the
+ * admin has it.
+ */
+async function syncGroups(store: Store, collections: CollectionIds) {
+  heading('Menu top level (parent collections)');
+  for (const g of GROUPS) {
+    const found = store.admin
+      ? (
+          await store.admin.query<{
+            collectionByIdentifier: {id: string} | null;
+          }>(FIND_COLLECTION, {handle: g.handle})
+        ).collectionByIdentifier
+      : null;
+    if (found) {
+      say('=', `${g.handle}`, `"${g.title}"`);
+      collections.ids.set(g.handle, found.id);
+      continue;
+    }
+    const under = g.sections.length ? g.sections.join(', ') : 'nothing yet';
+    say('+', `${g.handle}`, `"${g.title}", ${g.theme}, over ${under}`);
+    collections.created.add(g.handle);
+    if (store.write) {
+      const subsections = g.sections
+        .map((handle) => collections.ids.get(handle))
+        .filter((id): id is string => Boolean(id));
+      const r = await store.admin!.query<{
+        collectionCreate: {collection: {id: string} | null; userErrors: []};
+      }>(COLLECTION_CREATE, {
+        collection: {
+          title: g.title,
+          handle: g.handle,
+          sortOrder: 'MANUAL',
+          metafields: [
+            {
+              namespace: 'firebox',
+              key: 'theme',
+              type: 'single_line_text_field',
+              value: g.theme,
+            },
+            ...(subsections.length
+              ? [
+                  {
+                    namespace: 'firebox',
+                    key: 'subsections',
+                    type: 'list.collection_reference',
+                    value: JSON.stringify(subsections),
+                  },
+                ]
+              : []),
+          ],
+        },
+      });
+      check(`Create collection ${g.handle}`, r.collectionCreate.userErrors);
+      collections.ids.set(g.handle, r.collectionCreate.collection!.id);
+    } else {
+      collections.ids.set(g.handle, `(new collection ${g.handle})`);
+    }
+  }
+}
+
 async function syncProducts(
   store: Store,
   options: Options,
@@ -614,7 +678,7 @@ async function publishMenu(
 ) {
   heading('Storefront channel');
   const targets: {label: string; id?: string; productHandle?: string}[] = [
-    ...COLLECTIONS.filter(
+    ...[...COLLECTIONS, ...GROUPS].filter(
       (c) => options.publish || collections.created.has(c.handle),
     ).map((c) => ({
       label: `collection ${c.handle}`,

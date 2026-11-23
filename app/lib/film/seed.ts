@@ -28,7 +28,18 @@ export type SectionSeed = {
   products: ProductSeed[];
 };
 
-/** In menu order (`site_settings.menu_sections`); products in collection order. */
+export type GroupSeed = {
+  handle: string;
+  title: string;
+  theme: SectionTheme;
+  /** Handles of the sub-collections under it (`firebox.subsections`), in order. */
+  sections: string[];
+};
+
+/**
+ * The menu's chapters (sub-collections), in order under Pork; products in collection order.
+ * Every chapter the original site had is a pork cut.
+ */
 export const MENU_SEED: SectionSeed[] = [
   {
     handle: 'belly',
@@ -133,6 +144,21 @@ export const MENU_SEED: SectionSeed[] = [
       },
     ],
   },
+];
+
+/**
+ * The top level of the menu, in order (`site_settings.menu_sections`). Chicken and Buff start
+ * with no sub-collections and stay off the site until some with dishes are added in the admin.
+ */
+export const MENU_GROUPS: GroupSeed[] = [
+  {handle: 'chicken', title: 'Chicken', theme: 'ember', sections: []},
+  {
+    handle: 'pork',
+    title: 'Pork',
+    theme: 'night',
+    sections: MENU_SEED.map((section) => section.handle),
+  },
+  {handle: 'buff', title: 'Buff', theme: 'bark', sections: []},
 ];
 
 export const DROP_MESSAGE =

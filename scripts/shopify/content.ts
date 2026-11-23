@@ -10,6 +10,7 @@ import {ORIGINALS, type ArtOriginal} from '../../app/lib/film/originals';
 import {
   DROP_MESSAGE,
   DROPS_SEED,
+  MENU_GROUPS,
   MENU_SEED,
   type ProductSeed,
 } from '../../app/lib/film/seed';
@@ -78,6 +79,9 @@ export const COLLECTIONS: CollectionEntry[] = MENU_SEED.map((section) => ({
   theme: section.theme,
   productHandles: section.products.map((p) => p.handle),
 }));
+
+/** The top level of the menu (Chicken, Pork, Buff), each listing its sub-collections by handle. */
+export const GROUPS = MENU_GROUPS;
 
 export const PRODUCTS: (ProductSeed & {collection: string})[] =
   MENU_SEED.flatMap((section) =>
@@ -225,6 +229,7 @@ export function entries(refs: Refs): Entry[] {
         sub: o.scene_pit.sub,
         cta: o.scene_pit.cta,
         note: o.scene_pit.note,
+        menu_cta: o.scene_pit.menu_cta,
         art: refs.image('scene_pit.art'),
         art_phone: refs.image('scene_pit.art_phone'),
       }),
@@ -308,7 +313,7 @@ export function entries(refs: Refs): Entry[] {
         location_label: o.site_settings.location_label,
         broadcast_link: o.site_settings.broadcast_link,
         instagram: o.site_settings.instagram,
-        menu_sections: ids(COLLECTIONS.map((c) => refs.collection(c.handle))),
+        menu_sections: ids(GROUPS.map((g) => refs.collection(g.handle))),
         og_image: refs.image('site_settings.og_image'),
         seo_title: o.site_settings.seo_title,
         seo_description: o.site_settings.seo_description,
