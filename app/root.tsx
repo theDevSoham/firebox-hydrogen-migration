@@ -8,6 +8,7 @@ import {
   Meta,
   Scripts,
   ScrollRestoration,
+  useLocation,
   useMatches,
   useRouteLoaderData,
 } from 'react-router';
@@ -15,10 +16,16 @@ import type {Route} from './+types/root';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
+import waFloatStyles from '~/styles/wa-float.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
 import {GoogleAnalytics} from './components/GoogleAnalytics';
-import {gaMeasurementId} from '~/lib/analytics';
+import {Clarity} from './components/Clarity';
+import {WhatsAppFloat} from './components/film/site/WhatsAppFloat';
+import {WhatsAppTracker} from './components/film/site/WhatsAppTracker';
+import {clarityProjectId, gaMeasurementId} from '~/lib/analytics';
+import {toWhatsAppFloat} from '~/lib/film/model';
+import {SITE_SETTINGS_QUERY} from '~/lib/film/query';
 
 export type RootLoader = typeof loader;
 
@@ -84,6 +91,7 @@ export async function loader(args: Route.LoaderArgs) {
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
     gaMeasurementId: gaMeasurementId(env),
+    clarityProjectId: clarityProjectId(env),
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
@@ -106,17 +114,24 @@ export async function loader(args: Route.LoaderArgs) {
 async function loadCriticalData({context}: Route.LoaderArgs) {
   const {storefront} = context;
 
-  const [header] = await Promise.all([
+  const [header, siteSettings] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: {
         headerMenuHandle: 'main-menu', // Adjust to your header menu handle
       },
     }),
-    // Add other queries here, so that they are loaded in parallel
+    // The few Site settings every page shows (the floating WhatsApp button). Short cache, so the
+    // admin toggle shows within a minute (D.3.2). A failure only hides the button.
+    storefront
+      .query(SITE_SETTINGS_QUERY, {cache: storefront.CacheShort()})
+      .catch((error: Error) => {
+        console.error(error);
+        return null;
+      }),
   ]);
 
-  return {header};
+  return {header, whatsappFloat: toWhatsAppFloat(siteSettings)};
 }
 
 /**
@@ -181,6 +196,7 @@ export function Layout({children}: {children?: React.ReactNode}) {
           dangerouslySetInnerHTML={{__html: MOTION_FLAGS}}
         />
         <link rel="stylesheet" href={tailwindCss}></link>
+        <link rel="stylesheet" href={waFloatStyles}></link>
         {isFilm ? null : (
           <>
             <link rel="stylesheet" href={resetStyles}></link>
@@ -202,6 +218,10 @@ export function Layout({children}: {children?: React.ReactNode}) {
 export default function App() {
   const data = useRouteLoaderData<RootLoader>('root');
   const isFilm = useIsFilm();
+  // The floating WhatsApp button stays off the cart page, as it does while the drawer is open.
+  const isCart = /^(\/[a-z]{2}-[a-z]{2})?\/cart(\/|$)/i.test(
+    useLocation().pathname,
+  );
 
   if (!data) {
     return <Outlet />;
@@ -220,7 +240,12 @@ export default function App() {
           <Outlet />
         </PageLayout>
       )}
+      {data.whatsappFloat && !isCart && (
+        <WhatsAppFloat href={data.whatsappFloat.href} />
+      )}
+      <WhatsAppTracker />
       <GoogleAnalytics id={data.gaMeasurementId} />
+      <Clarity id={data.clarityProjectId} />
     </Analytics.Provider>
   );
 }

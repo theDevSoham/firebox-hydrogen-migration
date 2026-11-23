@@ -6,7 +6,11 @@ import {
   type HydrogenRouterContextProvider,
 } from '@shopify/hydrogen';
 import type {EntryContext} from 'react-router';
-import {GA_CSP, gaMeasurementId} from '~/lib/analytics';
+import {analyticsCsp} from '~/lib/analytics';
+
+/** Same-origin scripts and Shopify's CDN: what script-src / img-src start from when we set them. */
+const SCRIPT_SRC = ["'self'", 'https://cdn.shopify.com'];
+const IMG_SRC = ["'self'", 'https://cdn.shopify.com', 'data:'];
 
 export default async function handleRequest(
   request: Request,
@@ -16,19 +20,23 @@ export default async function handleRequest(
   context: HydrogenRouterContextProvider,
 ) {
   // Hydrogen's policy (PORTING-DECISIONS.md · D.3.4), plus Shopify's performance-metrics endpoint
-  // (Hydrogen's analytics report to it; the default policy doesn't list it) and Google Analytics'
-  // hosts only when a measurement ID is set. Fonts, scripts and the smoke worker are same-origin.
-  const ga = gaMeasurementId(context.env) ? GA_CSP : null;
+  // (Hydrogen's analytics report to it; the default policy doesn't list it) and the hosts of
+  // whichever of Google Analytics and Microsoft Clarity have an ID set (app/lib/analytics.ts).
+  // Hydrogen merges connect-src with its defaults itself; script-src and img-src have no
+  // defaults of their own (they fall back to default-src), so they're only set, from the lists
+  // above, when an integration needs them. Neither set: the policy is Hydrogen's, unchanged.
+  // Fonts, scripts and the smoke worker are same-origin.
+  const extra = analyticsCsp(context.env);
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     connectSrc: [
       "'self'",
       'https://otlp-http-production.shopifysvc.com',
-      ...(ga?.connectSrc ?? []),
+      ...extra.connectSrc,
     ],
-    ...(ga && {
-      scriptSrc: ["'self'", 'https://cdn.shopify.com', ...ga.scriptSrc],
-      imgSrc: ["'self'", 'https://cdn.shopify.com', 'data:', ...ga.imgSrc],
+    ...(extra.scriptSrc.length > 0 && {
+      scriptSrc: [...SCRIPT_SRC, ...extra.scriptSrc],
     }),
+    ...(extra.imgSrc.length > 0 && {imgSrc: [...IMG_SRC, ...extra.imgSrc]}),
     shop: {
       checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
       storeDomain: context.env.PUBLIC_STORE_DOMAIN,

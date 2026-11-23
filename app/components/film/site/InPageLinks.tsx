@@ -1,7 +1,8 @@
 import {useEffect} from 'react';
-import {getLenis} from '~/lib/film/motion';
+import {getLenis, motionOn} from '~/lib/film/motion';
 
-// Same-page links on the film (#menu, #top, #content) jump here, not through the browser.
+// Same-page links on the film (#menu, #top, #content) and /menu's chips jump here, not through
+// the browser.
 //
 // Why: a plain <a href="#menu"> pushes a history entry with no state. React Router keys saved
 // scroll positions by location.key, and every state-less entry gets the key "default", the
@@ -63,10 +64,21 @@ const easeInOutQuart = (t: number) =>
   t < 0.5 ? 8 * t ** 4 : 1 - (-2 * t + 2) ** 4 / 2;
 
 function glideTo(target: HTMLElement, instant: boolean) {
-  const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY);
+  // scroll-margin-top keeps a target clear of sticky bars (/menu's chips); the film sets none.
+  const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  const y = Math.max(
+    0,
+    target.getBoundingClientRect().top + window.scrollY - margin,
+  );
   const lenis = getLenis();
   if (!lenis) {
-    window.scrollTo({top: y, behavior: instant ? 'auto' : 'smooth'});
+    // Without Lenis (/menu): the browser's own smooth scroll, unless motion is off or the
+    // visitor asked for less.
+    const smooth =
+      !instant &&
+      motionOn() &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top: y, behavior: smooth ? 'smooth' : 'auto'});
     return;
   }
   // ~0.6 s for a short hop, up to 1.6 s for hero → menu and longer runs.

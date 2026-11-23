@@ -27,10 +27,51 @@ export const GA_CSP = {
   ],
 };
 
+// Microsoft Clarity (session recordings and heatmaps), the same way: off until
+// PUBLIC_CLARITY_PROJECT_ID is set, and its hosts are only allowed when it's on.
+
+/** The Clarity project ID, if it looks like one (lower-case letters and digits). */
+export function clarityProjectId(env: {
+  PUBLIC_CLARITY_PROJECT_ID?: string;
+}): string | null {
+  const id = env.PUBLIC_CLARITY_PROJECT_ID?.trim() ?? '';
+  return /^[a-z0-9]{6,20}$/i.test(id) ? id : null;
+}
+
+/** Hosts Clarity needs, for the Content Security Policy (app/entry.server.tsx). */
+export const CLARITY_CSP = {
+  scriptSrc: ['https://www.clarity.ms', 'https://*.clarity.ms'],
+  connectSrc: ['https://*.clarity.ms'],
+  imgSrc: ['https://*.clarity.ms', 'https://c.bing.com'],
+};
+
+export type CspHosts = {
+  scriptSrc: string[];
+  connectSrc: string[];
+  imgSrc: string[];
+};
+
+/** The extra hosts for whichever of GA and Clarity are switched on (none: every list empty). */
+export function analyticsCsp(env: {
+  PUBLIC_GA_MEASUREMENT_ID?: string;
+  PUBLIC_CLARITY_PROJECT_ID?: string;
+}): CspHosts {
+  const on = [
+    gaMeasurementId(env) ? GA_CSP : null,
+    clarityProjectId(env) ? CLARITY_CSP : null,
+  ].filter((hosts): hosts is CspHosts => hosts !== null);
+  return {
+    scriptSrc: on.flatMap((hosts) => hosts.scriptSrc),
+    connectSrc: on.flatMap((hosts) => hosts.connectSrc),
+    imgSrc: on.flatMap((hosts) => hosts.imgSrc),
+  };
+}
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
+    clarity?: ((...args: unknown[]) => void) & {q?: unknown[]};
   }
 }
 
@@ -66,4 +107,15 @@ export function installGtag(id: string) {
   };
   window.gtag('js', new Date());
   window.gtag('config', id);
+}
+
+/** Clarity's queue, as in its standard snippet: calls made before the tag loads wait in clarity.q. */
+export function installClarity() {
+  if (window.clarity) return;
+  const queue: NonNullable<Window['clarity']> = function clarity() {
+    // Clarity reads Arguments objects from the queue, as gtag does.
+    // eslint-disable-next-line prefer-rest-params
+    (queue.q ??= []).push(arguments);
+  };
+  window.clarity = queue;
 }

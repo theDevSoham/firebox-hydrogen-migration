@@ -2,7 +2,6 @@ import {CartDrawer} from '~/components/film/cart/CartDrawer';
 import {CartToast} from '~/components/film/cart/CartToast';
 import {CartUiProvider} from '~/components/film/cart/CartUi';
 import {ThemeController} from '~/components/film/site/ThemeController';
-import {WhatsAppTracker} from '~/components/film/site/WhatsAppTracker';
 import {S0Intro} from '~/components/film/motion/S0Intro';
 import {SmoothScroll} from '~/components/film/motion/SmoothScroll';
 import {S1Pit} from '~/components/film/scenes/S1Pit';
@@ -44,7 +43,6 @@ export function Film({film}: {film: FilmData}) {
       <SiteNav />
       <S0Intro />
       <ThemeController />
-      <WhatsAppTracker />
       <main id="content" tabIndex={-1}>
         <S1Pit pit={film.pit} />
         <S2Manifesto manifesto={film.manifesto} />

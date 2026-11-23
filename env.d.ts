@@ -11,5 +11,7 @@ declare global {
   interface Env {
     /** GA4 measurement ID (G-…). Unset: no Google Analytics (app/lib/analytics.ts). */
     PUBLIC_GA_MEASUREMENT_ID?: string;
+    /** Microsoft Clarity project ID (from clarity.microsoft.com → Settings). Unset: no Clarity (app/lib/analytics.ts). */
+    PUBLIC_CLARITY_PROJECT_ID?: string;
   }
 }

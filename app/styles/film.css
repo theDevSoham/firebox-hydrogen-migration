@@ -140,6 +140,19 @@ html.lenis, html.lenis body { height: auto; }
     .fb-nav[data-theme] .fb-cta:hover { background: var(--fb-ember); box-shadow: 0 0 0 3px var(--fb-amber); }
   }
   .fb-nav[data-theme] .fb-cta:focus-visible { box-shadow: 0 0 0 7px var(--fb-amber); }
+  /* Menu: a text link beside the cart button, cream on dark chapters, char on light ones */
+  .fb-nav__end { display: flex; align-items: center; gap: clamp(6px, 1.6vw, 20px); }
+  .fb-nav__link {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; color: var(--fb-cream); text-decoration: none;
+    font: 700 20px/1 var(--font-label); letter-spacing: .1em; text-transform: uppercase;
+  }
+  .fb-nav__link > span { padding-top: 3px; border-bottom: 2px solid transparent; transition: border-color .25s; }
+  .fb-nav[data-theme="light"] .fb-nav__link,
+  .fb-nav[data-theme="kraft"] .fb-nav__link { color: var(--fb-char); }
+  .fb-nav__link[aria-current="page"] > span { border-bottom-color: var(--fb-ember); }
+  @media (hover: hover) {
+    .fb-nav__link:hover > span { border-bottom-color: currentColor; }
+  }
   @media (max-width: 767px) {
     .fb-nav .fb-cta { padding: 0 14px; font-size: 18px; gap: 8px; }
     .fb-nav .fb-cta > svg { width: 20px; height: 20px; }
@@ -712,3 +725,130 @@ html:not([data-motion]) .fb-seal svg { animation: none; }
   .fb-cart-page main { max-width: 720px; margin: 0 auto; padding: calc(var(--nav-h) + 32px) var(--gutter-r) 64px var(--gutter-l); }
   .fb-cart-page .fb-cart__title { font-size: clamp(56px, 8vw, 96px); padding-bottom: 16px; border-bottom: 2px solid var(--fb-cream); }
 }
+
+/* =============================================================
+   /menu (app/components/film/menu/): the film's cards and cart on
+   a plain page. Served as the end state; motion is CSS only, with
+   transform, opacity and clip-path, and only with html[data-motion]
+   and no request for reduced motion.
+   ============================================================= */
+
+@layer components {
+  .mn-page { min-height: 100vh; min-height: 100svh; background: var(--fb-charcoal); }
+  .mn-page .fb-nav { background: var(--fb-charcoal); }
+  .mn { background-color: var(--fb-charcoal); padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); }
+  /* main[data-theme] is the active chapter (the first, as served). The chapters cover it with their
+     own colour unless motion runs, so it's already right when the colour starts to follow. */
+  .mn[data-theme="ember"] { background-color: var(--fb-ember); }
+  .mn[data-theme="kraft"] { background-color: var(--fb-kraft); }
+  .mn[data-theme="bark"] { background-color: var(--fb-bark); }
+  .mn-head { padding: clamp(24px, 5vh, 56px) var(--gutter-r) clamp(16px, 3vh, 32px) var(--gutter-l); background: var(--fb-charcoal); }
+  .mn-kicker { margin: 0 0 10px; font-size: var(--fs-label); color: var(--fb-amber); }
+  .mn-h { margin: 0; font-size: var(--fs-display); color: var(--fb-cream); }
+
+  /* Chips: sticky under the nav; one row that scrolls sideways on phones */
+  .mn-chips {
+    position: sticky; z-index: 4; top: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
+    background: var(--fb-charcoal); border-bottom: 1px solid rgb(254 242 218 / .2);
+  }
+  .mn-chips ul {
+    position: relative; display: flex; gap: 4px; margin: 0; padding: 0 var(--gutter-r) 0 var(--gutter-l); list-style: none;
+    overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  }
+  .mn-chips ul::-webkit-scrollbar { display: none; }
+  .mn-chips li { flex: none; }
+  .mn-chip {
+    position: relative; display: inline-flex; align-items: center; min-height: 52px; padding: 0 12px;
+    color: var(--fb-cream); font-size: 20px; text-decoration: none; white-space: nowrap;
+  }
+  .mn-chip::after {
+    content: ""; position: absolute; left: 12px; right: 12px; bottom: 8px; height: 3px;
+    background: var(--fb-ember); transform: scaleX(0); transform-origin: 0 50%;
+  }
+  .mn-chip[aria-current]::after { transform: scaleX(1); }
+  @media (hover: hover) { .mn-chip:hover { color: var(--fb-amber); } }
+
+  /* Chapters, coloured like S4's */
+  .mn-section {
+    position: relative; padding: clamp(32px, 6vh, 72px) var(--gutter-r) clamp(48px, 8vh, 96px) var(--gutter-l);
+    scroll-margin-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 53px);
+  }
+  .mn-section:focus { outline: none; box-shadow: none; }
+  .mn-section[data-theme="ember"] { background-color: var(--fb-ember); --title-ink: var(--fb-cream); }
+  .mn-section[data-theme="night"] { background-color: var(--fb-charcoal); --title-ink: var(--fb-red-bright); }
+  .mn-section[data-theme="kraft"] { --title-ink: var(--fb-char); }
+  .mn-section[data-theme="bark"] { background-color: var(--fb-bark); --title-ink: var(--fb-cream); }
+  .mn-title {
+    margin: 0 0 clamp(20px, 4vh, 40px); color: var(--title-ink); line-height: .86; overflow-wrap: anywhere;
+    /* --chars: the title's longest word, so it fits a phone on one line. */
+    font-size: min(clamp(56px, 12vw, 176px), calc(150vw / var(--chars, 6)));
+  }
+  .mn-title > span { display: inline-block; transform-origin: 0 100%; }
+  .mn-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: clamp(16px, 2.4vw, 32px); max-width: 1320px; }
+  .mn-card { min-width: 0; }
+  .mn-card > .fb-card { height: 100%; }
+
+  .mn-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px var(--gutter-r) 96px var(--gutter-l); }
+  .mn-empty p { margin: 0; font-size: var(--fs-accent); line-height: 1.05; }
+
+  /* Room at the bottom for the floating WhatsApp button */
+  .mn-foot {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 24px;
+    padding: 24px var(--gutter-r) calc(88px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
+    border-top: 1px solid rgb(254 242 218 / .2); color: var(--fb-kraft); font-size: 18px;
+  }
+  .mn-foot a { display: inline-flex; align-items: center; min-height: 44px; color: var(--fb-cream); text-decoration: none; }
+
+  /* Phones: compact cards, the photo beside the words */
+  @media (max-width: 767px) {
+    .mn .fb-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: start; }
+    .mn .fb-card__img { grid-area: 1 / 1; }
+    .mn .fb-card__seam { grid-area: 1 / 1; align-self: center; }
+    .mn .fb-card__seam .fb-stamp { --stamp-size: 22px; padding: 4px 8px 1px; border-width: 3px; }
+    .mn .fb-card__body { grid-area: 1 / 2; gap: 6px; padding: 12px 14px 14px; }
+    .mn .fb-card__edge { display: none; }
+    .mn .fb-card__none { font-size: 12px; }
+    .mn .fb-seal { top: 4px; right: 4px; transform-origin: 100% 0; transform: rotate(-10deg) scale(.5); }
+    .mn .fb-card__top { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .mn .fb-card__name { font-size: 24px; }
+    .mn .fb-card__price { font-size: 26px; }
+    .mn .fb-card__desc { font-size: 15px; line-height: 1.45; }
+  }
+
+  /* ---------- motion ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-motion] .mn-chip::after { transition: transform .35s var(--ease-rise); }
+
+    /* The ground takes the active chapter's colour (main[data-theme], set by MenuMotion), and the
+       chapters let it through. */
+    html[data-motion] .mn[data-reveal] { transition: background-color .6s ease; }
+    html[data-motion] .mn[data-reveal] .mn-section { background-color: transparent; }
+
+    /* Cards rise a few at a time (--i), and each photo unwraps from the top. */
+    html[data-motion] .mn[data-reveal] .mn-card {
+      transition: opacity .5s var(--ease-rise) calc(var(--i, 0) * 90ms), transform .7s var(--ease-rise) calc(var(--i, 0) * 90ms);
+    }
+    html[data-motion] .mn[data-reveal] .mn-card .fb-card__img {
+      clip-path: inset(0 0 0 0); transition: clip-path .8s var(--ease-wipe) calc(var(--i, 0) * 90ms + 120ms);
+    }
+    html[data-motion] .mn[data-reveal] .mn-card:not(.is-in) { opacity: 0; transform: translateY(48px); }
+    html[data-motion] .mn[data-reveal] .mn-card:not(.is-in) .fb-card__img { clip-path: inset(0 0 100% 0); }
+  }
+
+  /* Chapter titles swell in as they enter: tied to scroll where the browser can, else on entry. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      html[data-motion] .mn-title > span {
+        animation: mn-swell linear both; animation-timeline: view(); animation-range: entry 0% cover 30%;
+      }
+    }
+  }
+  @supports not (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      html[data-motion] .mn[data-reveal] .mn-title > span { transition: transform .8s var(--ease-rise), opacity .5s var(--ease-rise); }
+      html[data-motion] .mn[data-reveal] .mn-title:not(.is-in) > span { opacity: 0; transform: scale(.6) translateY(.12em); }
+    }
+  }
+}
+
+@keyframes mn-swell { from { opacity: 0; transform: scale(.6) translateY(.12em); } }
