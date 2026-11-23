@@ -1,4 +1,11 @@
-import type {FilmFileFragment, FilmQuery} from 'storefrontapi.generated';
+import type {
+  FilmCollectionFragment,
+  FilmFileFragment,
+  FilmQuery,
+  MenuQuery,
+  SiteSettingsQuery,
+} from 'storefrontapi.generated';
+import {DEFAULT_ORDER_MESSAGE, waLink} from './format';
 import {ORIGINALS, type ArtOriginal} from './originals';
 
 // toFilm(): the FILM_QUERY result → the props the scenes take (PORTING-DECISIONS.md · C).
@@ -174,10 +181,16 @@ const DROP_RANK: Record<DropStatus, number> = {
   soldout: 2,
 };
 
-function toMenu(settings: FilmQuery['settings']): MenuChapter[] {
-  const sections = settings?.menu_sections?.references?.nodes ?? [];
+/** site_settings.menu_sections, as the film and /menu both query it (FilmCollection). */
+type MenuSections =
+  | {references?: {nodes: ({} | FilmCollectionFragment)[]} | null}
+  | null
+  | undefined;
+
+function toMenu(field: MenuSections): MenuChapter[] {
+  const sections = field?.references?.nodes ?? [];
   return sections
-    .filter((node) => 'handle' in node)
+    .filter((node): node is FilmCollectionFragment => 'handle' in node)
     .map((section) => {
       const theme = section.theme?.value as SectionTheme | undefined;
       return {
@@ -257,6 +270,61 @@ function toDrops(nodes: NonNullable<FilmQuery['drops']>['nodes']): Drop[] {
     });
 }
 
+type SettingsFields = Pick<
+  NonNullable<FilmQuery['settings']>,
+  'whatsapp_number' | 'location_label' | 'broadcast_link' | 'instagram'
+>;
+
+function toSettings(settings: SettingsFields | null | undefined): Settings {
+  const o = ORIGINALS;
+  return {
+    whatsappNumber: text(
+      settings?.whatsapp_number,
+      o.site_settings.whatsapp_number,
+    ).replace(/\D/g, ''),
+    locationLabel: text(
+      settings?.location_label,
+      o.site_settings.location_label,
+    ),
+    broadcastLink: optional(settings?.broadcast_link) ?? '',
+    instagram: text(settings?.instagram, o.site_settings.instagram).replace(
+      /^@/,
+      '',
+    ),
+  };
+}
+
+/** /menu (MENU_QUERY): the chapters in menu order and the settings the cards need. */
+export function toMenuPage(data: MenuQuery) {
+  return {
+    settings: toSettings(data.settings),
+    menu: toMenu(data.settings?.menu_sections),
+  };
+}
+
+/**
+ * The floating WhatsApp button (SITE_SETTINGS_QUERY, every page): its wa.me link, or null when
+ * it's switched off. Off unless the admin toggle is on, so a store without the field (or a
+ * failed query) shows nothing; the number falls back like everywhere else (D.2.5).
+ */
+export function toWhatsAppFloat(
+  data: SiteSettingsQuery | null | undefined,
+): {href: string} | null {
+  const settings = data?.settings;
+  if (settings?.whatsapp_float_enabled?.value !== 'true') return null;
+  const number = text(
+    settings.whatsapp_number,
+    ORIGINALS.site_settings.whatsapp_number,
+  ).replace(/\D/g, '');
+  if (!number) return null;
+  return {
+    href: waLink(
+      number,
+      optional(settings.whatsapp_float_message) ?? DEFAULT_ORDER_MESSAGE,
+    ),
+  };
+}
+
 export function toFilm(data: FilmQuery) {
   const o = ORIGINALS;
   const {
@@ -281,21 +349,7 @@ export function toFilm(data: FilmQuery) {
   const rollingWords = list(footer?.rolling_words);
 
   return {
-    settings: {
-      whatsappNumber: text(
-        settings?.whatsapp_number,
-        o.site_settings.whatsapp_number,
-      ).replace(/\D/g, ''),
-      locationLabel: text(
-        settings?.location_label,
-        o.site_settings.location_label,
-      ),
-      broadcastLink: optional(settings?.broadcast_link) ?? '',
-      instagram: text(settings?.instagram, o.site_settings.instagram).replace(
-        /^@/,
-        '',
-      ),
-    } satisfies Settings,
+    settings: toSettings(settings),
     seo: {
       title: text(settings?.seo_title, o.site_settings.seo_title),
       description: text(
@@ -304,7 +358,7 @@ export function toFilm(data: FilmQuery) {
       ),
       ogImage: image(settings?.og_image),
     },
-    menu: toMenu(settings),
+    menu: toMenu(settings?.menu_sections),
     drops: toDrops(data.drops?.nodes ?? []),
 
     pit: {

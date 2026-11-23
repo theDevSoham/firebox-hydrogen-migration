@@ -8,38 +8,6 @@ export type FilmImageFragment = Pick<
   'url' | 'width' | 'height' | 'altText'
 >;
 
-export type FilmFileFragment = {
-  reference?: StorefrontAPI.Maybe<
-    | {
-        __typename:
-          | 'Article'
-          | 'Collection'
-          | 'GenericFile'
-          | 'Metaobject'
-          | 'Model3d'
-          | 'Page'
-          | 'Product'
-          | 'ProductVariant';
-      }
-    | ({__typename: 'MediaImage'} & {
-        image?: StorefrontAPI.Maybe<
-          Pick<StorefrontAPI.Image, 'url' | 'width' | 'height' | 'altText'>
-        >;
-      })
-    | ({__typename: 'Video'} & {
-        sources: Array<
-          Pick<
-            StorefrontAPI.VideoSource,
-            'url' | 'mimeType' | 'width' | 'height'
-          >
-        >;
-        previewImage?: StorefrontAPI.Maybe<
-          Pick<StorefrontAPI.Image, 'url' | 'width' | 'height' | 'altText'>
-        >;
-      })
-  >;
-};
-
 export type FilmProductFragment = Pick<
   StorefrontAPI.Product,
   'id' | 'handle' | 'title' | 'description' | 'availableForSale'
@@ -89,6 +57,38 @@ export type FilmCollectionFragment = Pick<
       }
     >;
   };
+};
+
+export type FilmFileFragment = {
+  reference?: StorefrontAPI.Maybe<
+    | {
+        __typename:
+          | 'Article'
+          | 'Collection'
+          | 'GenericFile'
+          | 'Metaobject'
+          | 'Model3d'
+          | 'Page'
+          | 'Product'
+          | 'ProductVariant';
+      }
+    | ({__typename: 'MediaImage'} & {
+        image?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.Image, 'url' | 'width' | 'height' | 'altText'>
+        >;
+      })
+    | ({__typename: 'Video'} & {
+        sources: Array<
+          Pick<
+            StorefrontAPI.VideoSource,
+            'url' | 'mimeType' | 'width' | 'height'
+          >
+        >;
+        previewImage?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.Image, 'url' | 'width' | 'height' | 'altText'>
+        >;
+      })
+  >;
 };
 
 export type FilmDropFragment = Pick<StorefrontAPI.Metaobject, 'handle'> & {
@@ -895,6 +895,92 @@ export type FilmQuery = {
       }
     >;
   };
+};
+
+export type MenuQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type MenuQuery = {
+  settings?: StorefrontAPI.Maybe<{
+    whatsapp_number?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    location_label?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    broadcast_link?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    instagram?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    menu_sections?: StorefrontAPI.Maybe<{
+      references?: StorefrontAPI.Maybe<{
+        nodes: Array<
+          Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+            theme?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>;
+            products: {
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.Product,
+                  'id' | 'handle' | 'title' | 'description' | 'availableForSale'
+                > & {
+                  selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale'
+                    >
+                  >;
+                  featuredImage?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'width' | 'height' | 'altText'
+                    >
+                  >;
+                  priceRange: {
+                    minVariantPrice: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                  };
+                  unit?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.Metafield, 'value'>
+                  >;
+                  isNew?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.Metafield, 'value'>
+                  >;
+                  whatsappMessage?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.Metafield, 'value'>
+                  >;
+                }
+              >;
+            };
+          }
+        >;
+      }>;
+    }>;
+  }>;
+};
+
+export type SiteSettingsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SiteSettingsQuery = {
+  settings?: StorefrontAPI.Maybe<{
+    whatsapp_number?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    whatsapp_float_enabled?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+    whatsapp_float_message?: StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.MetaobjectField, 'value'>
+    >;
+  }>;
 };
 
 export type MoneyFragment = Pick<
@@ -2095,9 +2181,17 @@ export type PredictiveSearchQuery = {
 };
 
 interface GeneratedQueryTypes {
-  '#graphql\n  fragment FilmImage on Image {\n    url\n    width\n    height\n    altText\n  }\n\n  fragment FilmFile on MetaobjectField {\n    reference {\n      __typename\n      ... on MediaImage {\n        image {\n          ...FilmImage\n        }\n      }\n      ... on Video {\n        sources {\n          url\n          mimeType\n          width\n          height\n        }\n        previewImage {\n          ...FilmImage\n        }\n      }\n    }\n  }\n\n  fragment FilmProduct on Product {\n    id\n    handle\n    title\n    description\n    availableForSale\n    # The variant "Add to cart" adds. Menu items have one variant; a product with options adds\n    # its first available one.\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n    }\n    featuredImage {\n      ...FilmImage\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    unit: metafield(namespace: "firebox", key: "unit") {\n      value\n    }\n    isNew: metafield(namespace: "firebox", key: "is_new") {\n      value\n    }\n    whatsappMessage: metafield(namespace: "firebox", key: "whatsapp_message") {\n      value\n    }\n  }\n\n  fragment FilmCollection on Collection {\n    id\n    handle\n    title\n    theme: metafield(namespace: "firebox", key: "theme") {\n      value\n    }\n    products(first: 50, sortKey: MANUAL) {\n      nodes {\n        ...FilmProduct\n      }\n    }\n  }\n\n  fragment FilmDrop on Metaobject {\n    handle\n    kind: field(key: "kind") { value }\n    name: field(key: "name") { value }\n    description: field(key: "description") { value }\n    price: field(key: "price") { value }\n    limit: field(key: "limit") { value }\n    date: field(key: "date") { value }\n    slot: field(key: "slot") { value }\n    status: field(key: "status") { value }\n    is_new: field(key: "is_new") { value }\n    poster: field(key: "poster") { ...FilmFile }\n    whatsapp_message: field(key: "whatsapp_message") { value }\n    guest_name: field(key: "guest_name") { value }\n    guest_url: field(key: "guest_url") { value }\n    guest_accent: field(key: "guest_accent") { value }\n    sort_order: field(key: "sort_order") { value }\n  }\n\n  fragment FilmReel on Metaobject {\n    handle\n    cover: field(key: "cover") { ...FilmFile }\n    video: field(key: "video") { ...FilmFile }\n    caption: field(key: "caption") { value }\n    likes: field(key: "likes") { value }\n    subject: field(key: "subject") { value }\n    instagram_url: field(key: "instagram_url") { value }\n  }\n\n  fragment FilmComment on Metaobject {\n    handle\n    quote: field(key: "quote") { value }\n    by: field(key: "by") { value }\n    cleared: field(key: "cleared") { value }\n  }\n\n  query Film($country: CountryCode, $language: LanguageCode)\n  @inContext(country: $country, language: $language) {\n    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {\n      whatsapp_number: field(key: "whatsapp_number") { value }\n      location_label: field(key: "location_label") { value }\n      broadcast_link: field(key: "broadcast_link") { value }\n      instagram: field(key: "instagram") { value }\n      menu_sections: field(key: "menu_sections") {\n        references(first: 20) {\n          nodes {\n            ... on Collection {\n              ...FilmCollection\n            }\n          }\n        }\n      }\n      og_image: field(key: "og_image") { ...FilmFile }\n      seo_title: field(key: "seo_title") { value }\n      seo_description: field(key: "seo_description") { value }\n    }\n\n    pit: metaobject(handle: {type: "scene_pit", handle: "home"}) {\n      headline: field(key: "headline") { value }\n      sub: field(key: "sub") { value }\n      cta: field(key: "cta") { value }\n      note: field(key: "note") { value }\n      art: field(key: "art") { ...FilmFile }\n      art_phone: field(key: "art_phone") { ...FilmFile }\n      smoke: field(key: "smoke") { ...FilmFile }\n    }\n\n    manifesto: metaobject(handle: {type: "scene_manifesto", handle: "home"}) {\n      text: field(key: "text") { value }\n      chip: field(key: "chip") { value }\n    }\n\n    nineHours: metaobject(handle: {type: "scene_nine_hours", handle: "home"}) {\n      kicker: field(key: "kicker") { value }\n      name: field(key: "name") { value }\n      chip: field(key: "chip") { value }\n      raw: field(key: "raw") { ...FilmFile }\n      done: field(key: "done") { ...FilmFile }\n    }\n\n    box: metaobject(handle: {type: "scene_box", handle: "home"}) {\n      scrawl: field(key: "scrawl") { value }\n      line: field(key: "line") { value }\n      sub: field(key: "sub") { value }\n      open: field(key: "open") { ...FilmFile }\n      closed: field(key: "closed") { ...FilmFile }\n    }\n\n    dropsHeading: metaobject(handle: {type: "scene_drops_heading", handle: "home"}) {\n      title: field(key: "title") { value }\n      sub: field(key: "sub") { value }\n    }\n\n    kolkata: metaobject(handle: {type: "scene_kolkata", handle: "home"}) {\n      word_1: field(key: "word_1") { value }\n      word_2: field(key: "word_2") { value }\n      word_3: field(key: "word_3") { value }\n      meaning: field(key: "meaning") { value }\n      reels: field(key: "reels") {\n        references(first: 12) {\n          nodes {\n            ... on Metaobject {\n              ...FilmReel\n            }\n          }\n        }\n      }\n      comments: field(key: "comments") {\n        references(first: 12) {\n          nodes {\n            ... on Metaobject {\n              ...FilmComment\n            }\n          }\n        }\n      }\n    }\n\n    behind: metaobject(handle: {type: "scene_behind", handle: "home"}) {\n      title: field(key: "title") { value }\n      byline: field(key: "byline") { value }\n      story: field(key: "story") { value }\n      link_text: field(key: "link_text") { value }\n      photo: field(key: "photo") { ...FilmFile }\n    }\n\n    footer: metaobject(handle: {type: "scene_footer", handle: "home"}) {\n      headline: field(key: "headline") { value }\n      highlight: field(key: "highlight") { value }\n      pickup_label: field(key: "pickup_label") { value }\n      pickup: field(key: "pickup") { value }\n      follow_label: field(key: "follow_label") { value }\n      fine_print: field(key: "fine_print") { value }\n      rolling_words: field(key: "rolling_words") { value }\n      background: field(key: "background") { ...FilmFile }\n      smoke: field(key: "smoke") { ...FilmFile }\n    }\n\n    drops: metaobjects(type: "drop", first: 50) {\n      nodes {\n        ...FilmDrop\n      }\n    }\n  }\n': {
+  '#graphql\n  #graphql\n  fragment FilmImage on Image {\n    url\n    width\n    height\n    altText\n  }\n\n  fragment FilmProduct on Product {\n    id\n    handle\n    title\n    description\n    availableForSale\n    # The variant "Add to cart" adds. Menu items have one variant; a product with options adds\n    # its first available one.\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n    }\n    featuredImage {\n      ...FilmImage\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    unit: metafield(namespace: "firebox", key: "unit") {\n      value\n    }\n    isNew: metafield(namespace: "firebox", key: "is_new") {\n      value\n    }\n    whatsappMessage: metafield(namespace: "firebox", key: "whatsapp_message") {\n      value\n    }\n  }\n\n  fragment FilmCollection on Collection {\n    id\n    handle\n    title\n    theme: metafield(namespace: "firebox", key: "theme") {\n      value\n    }\n    products(first: 50, sortKey: MANUAL) {\n      nodes {\n        ...FilmProduct\n      }\n    }\n  }\n\n\n  fragment FilmFile on MetaobjectField {\n    reference {\n      __typename\n      ... on MediaImage {\n        image {\n          ...FilmImage\n        }\n      }\n      ... on Video {\n        sources {\n          url\n          mimeType\n          width\n          height\n        }\n        previewImage {\n          ...FilmImage\n        }\n      }\n    }\n  }\n\n  fragment FilmDrop on Metaobject {\n    handle\n    kind: field(key: "kind") { value }\n    name: field(key: "name") { value }\n    description: field(key: "description") { value }\n    price: field(key: "price") { value }\n    limit: field(key: "limit") { value }\n    date: field(key: "date") { value }\n    slot: field(key: "slot") { value }\n    status: field(key: "status") { value }\n    is_new: field(key: "is_new") { value }\n    poster: field(key: "poster") { ...FilmFile }\n    whatsapp_message: field(key: "whatsapp_message") { value }\n    guest_name: field(key: "guest_name") { value }\n    guest_url: field(key: "guest_url") { value }\n    guest_accent: field(key: "guest_accent") { value }\n    sort_order: field(key: "sort_order") { value }\n  }\n\n  fragment FilmReel on Metaobject {\n    handle\n    cover: field(key: "cover") { ...FilmFile }\n    video: field(key: "video") { ...FilmFile }\n    caption: field(key: "caption") { value }\n    likes: field(key: "likes") { value }\n    subject: field(key: "subject") { value }\n    instagram_url: field(key: "instagram_url") { value }\n  }\n\n  fragment FilmComment on Metaobject {\n    handle\n    quote: field(key: "quote") { value }\n    by: field(key: "by") { value }\n    cleared: field(key: "cleared") { value }\n  }\n\n  query Film($country: CountryCode, $language: LanguageCode)\n  @inContext(country: $country, language: $language) {\n    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {\n      whatsapp_number: field(key: "whatsapp_number") { value }\n      location_label: field(key: "location_label") { value }\n      broadcast_link: field(key: "broadcast_link") { value }\n      instagram: field(key: "instagram") { value }\n      menu_sections: field(key: "menu_sections") {\n        references(first: 20) {\n          nodes {\n            ... on Collection {\n              ...FilmCollection\n            }\n          }\n        }\n      }\n      og_image: field(key: "og_image") { ...FilmFile }\n      seo_title: field(key: "seo_title") { value }\n      seo_description: field(key: "seo_description") { value }\n    }\n\n    pit: metaobject(handle: {type: "scene_pit", handle: "home"}) {\n      headline: field(key: "headline") { value }\n      sub: field(key: "sub") { value }\n      cta: field(key: "cta") { value }\n      note: field(key: "note") { value }\n      art: field(key: "art") { ...FilmFile }\n      art_phone: field(key: "art_phone") { ...FilmFile }\n      smoke: field(key: "smoke") { ...FilmFile }\n    }\n\n    manifesto: metaobject(handle: {type: "scene_manifesto", handle: "home"}) {\n      text: field(key: "text") { value }\n      chip: field(key: "chip") { value }\n    }\n\n    nineHours: metaobject(handle: {type: "scene_nine_hours", handle: "home"}) {\n      kicker: field(key: "kicker") { value }\n      name: field(key: "name") { value }\n      chip: field(key: "chip") { value }\n      raw: field(key: "raw") { ...FilmFile }\n      done: field(key: "done") { ...FilmFile }\n    }\n\n    box: metaobject(handle: {type: "scene_box", handle: "home"}) {\n      scrawl: field(key: "scrawl") { value }\n      line: field(key: "line") { value }\n      sub: field(key: "sub") { value }\n      open: field(key: "open") { ...FilmFile }\n      closed: field(key: "closed") { ...FilmFile }\n    }\n\n    dropsHeading: metaobject(handle: {type: "scene_drops_heading", handle: "home"}) {\n      title: field(key: "title") { value }\n      sub: field(key: "sub") { value }\n    }\n\n    kolkata: metaobject(handle: {type: "scene_kolkata", handle: "home"}) {\n      word_1: field(key: "word_1") { value }\n      word_2: field(key: "word_2") { value }\n      word_3: field(key: "word_3") { value }\n      meaning: field(key: "meaning") { value }\n      reels: field(key: "reels") {\n        references(first: 12) {\n          nodes {\n            ... on Metaobject {\n              ...FilmReel\n            }\n          }\n        }\n      }\n      comments: field(key: "comments") {\n        references(first: 12) {\n          nodes {\n            ... on Metaobject {\n              ...FilmComment\n            }\n          }\n        }\n      }\n    }\n\n    behind: metaobject(handle: {type: "scene_behind", handle: "home"}) {\n      title: field(key: "title") { value }\n      byline: field(key: "byline") { value }\n      story: field(key: "story") { value }\n      link_text: field(key: "link_text") { value }\n      photo: field(key: "photo") { ...FilmFile }\n    }\n\n    footer: metaobject(handle: {type: "scene_footer", handle: "home"}) {\n      headline: field(key: "headline") { value }\n      highlight: field(key: "highlight") { value }\n      pickup_label: field(key: "pickup_label") { value }\n      pickup: field(key: "pickup") { value }\n      follow_label: field(key: "follow_label") { value }\n      fine_print: field(key: "fine_print") { value }\n      rolling_words: field(key: "rolling_words") { value }\n      background: field(key: "background") { ...FilmFile }\n      smoke: field(key: "smoke") { ...FilmFile }\n    }\n\n    drops: metaobjects(type: "drop", first: 50) {\n      nodes {\n        ...FilmDrop\n      }\n    }\n  }\n': {
     return: FilmQuery;
     variables: FilmQueryVariables;
+  };
+  '#graphql\n  #graphql\n  fragment FilmImage on Image {\n    url\n    width\n    height\n    altText\n  }\n\n  fragment FilmProduct on Product {\n    id\n    handle\n    title\n    description\n    availableForSale\n    # The variant "Add to cart" adds. Menu items have one variant; a product with options adds\n    # its first available one.\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n    }\n    featuredImage {\n      ...FilmImage\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    unit: metafield(namespace: "firebox", key: "unit") {\n      value\n    }\n    isNew: metafield(namespace: "firebox", key: "is_new") {\n      value\n    }\n    whatsappMessage: metafield(namespace: "firebox", key: "whatsapp_message") {\n      value\n    }\n  }\n\n  fragment FilmCollection on Collection {\n    id\n    handle\n    title\n    theme: metafield(namespace: "firebox", key: "theme") {\n      value\n    }\n    products(first: 50, sortKey: MANUAL) {\n      nodes {\n        ...FilmProduct\n      }\n    }\n  }\n\n  query Menu($country: CountryCode, $language: LanguageCode)\n  @inContext(country: $country, language: $language) {\n    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {\n      whatsapp_number: field(key: "whatsapp_number") { value }\n      location_label: field(key: "location_label") { value }\n      broadcast_link: field(key: "broadcast_link") { value }\n      instagram: field(key: "instagram") { value }\n      menu_sections: field(key: "menu_sections") {\n        references(first: 20) {\n          nodes {\n            ... on Collection {\n              ...FilmCollection\n            }\n          }\n        }\n      }\n    }\n  }\n': {
+    return: MenuQuery;
+    variables: MenuQueryVariables;
+  };
+  '#graphql\n  query SiteSettings($country: CountryCode, $language: LanguageCode)\n  @inContext(country: $country, language: $language) {\n    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {\n      whatsapp_number: field(key: "whatsapp_number") { value }\n      whatsapp_float_enabled: field(key: "whatsapp_float_enabled") { value }\n      whatsapp_float_message: field(key: "whatsapp_float_message") { value }\n    }\n  }\n': {
+    return: SiteSettingsQuery;
+    variables: SiteSettingsQueryVariables;
   };
   '#graphql\n  fragment Shop on Shop {\n    id\n    name\n    description\n    primaryDomain {\n      url\n    }\n    brand {\n      logo {\n        image {\n          url\n        }\n      }\n    }\n  }\n  query Header(\n    $country: CountryCode\n    $headerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      ...Shop\n    }\n    menu(handle: $headerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n': {
     return: HeaderQuery;

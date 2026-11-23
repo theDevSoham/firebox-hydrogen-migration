@@ -465,6 +465,19 @@ export const METAOBJECT_DEFINITIONS: MetaobjectDef[] = [
       },
       text('instagram', 'Instagram handle', 30, 'Without the @.'),
       {
+        key: 'whatsapp_float_enabled',
+        name: 'Floating WhatsApp button',
+        type: 'boolean',
+        description:
+          'Shows a WhatsApp button in the bottom-right corner of every page (not the cart). Off or empty: hidden.',
+      },
+      text(
+        'whatsapp_float_message',
+        'Floating button message',
+        200,
+        `Pre-filled when someone taps the floating button. Empty: "Hi Firebox! I'd like to pre-order."`,
+      ),
+      {
         key: 'menu_sections',
         name: 'Menu chapters',
         type: 'list.collection_reference',

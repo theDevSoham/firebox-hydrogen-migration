@@ -55,6 +55,12 @@ export function S9Footer({
           <div className="s9-side">
             <dl className="s9-info">
               <div>
+                <dt>Menu</dt>
+                <dd>
+                  <a href="/menu">The full menu</a>
+                </dd>
+              </div>
+              <div>
                 <dt>{text.pickupLabel}</dt>
                 <dd>
                   {settings.locationLabel}. {text.pickup}

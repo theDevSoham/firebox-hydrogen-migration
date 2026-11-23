@@ -1,0 +1,41 @@
+/* =============================================================
+   The floating WhatsApp button (app/components/film/site/WhatsAppFloat.tsx).
+   Loaded on every page, film or not, so it can't live in film.css (film routes
+   only); the tokens it uses are site-wide, in tailwind.css.
+   ============================================================= */
+
+@layer components {
+  .fb-wa-float {
+    position: fixed; z-index: var(--z-nav);
+    right: max(16px, calc(env(safe-area-inset-right, 0px) + 8px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 56px; height: 56px; box-sizing: border-box;
+    background: var(--fb-red); color: var(--fb-cream); border: 2px solid var(--fb-cream);
+    box-shadow: 4px 4px 0 var(--fb-charcoal); text-decoration: none;
+    transition: transform .25s var(--ease-rise), background-color .25s, box-shadow .25s;
+  }
+  .fb-wa-float > svg { width: 28px; height: 28px; }
+  @media (hover: hover) {
+    .fb-wa-float:hover { background: var(--fb-ember); box-shadow: 4px 4px 0 var(--fb-charcoal), 0 0 0 3px var(--fb-amber); transform: rotate(-4deg); }
+  }
+  .fb-wa-float:focus-visible { outline: 3px solid var(--fb-cream); outline-offset: 3px; box-shadow: 0 0 0 7px var(--fb-amber); }
+
+  /* Out of the way while the cart drawer is open (the cart page doesn't render it at all). */
+  html:has(.fb-cart--drawer[open]) .fb-wa-float { visibility: hidden; }
+
+  /* The film's own bottom-right corners make room: S7's Instagram handle lifts above the button,
+     and on phones S1's note stops short of it. */
+  html:has(.fb-wa-float) .s7-handle { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+  @media (max-width: 767px) {
+    html:has(.fb-wa-float) .s1-note { margin-right: 64px; }
+  }
+
+  /* A small rise once the page is up; only when motion runs and the visitor hasn't asked for less. */
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-motion] .fb-wa-float { animation: fb-wa-in .5s var(--ease-rise) .6s backwards; }
+  }
+  @keyframes fb-wa-in {
+    from { opacity: 0; transform: translateY(24px) rotate(-8deg) scale(.8); }
+  }
+}

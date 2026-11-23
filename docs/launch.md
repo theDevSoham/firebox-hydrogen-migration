@@ -25,10 +25,11 @@ Oxygen supplies the storefront's own keys (store domain, Storefront API tokens, 
 shop ID, session secret). Add these in **Hydrogen → your storefront → Storefront settings →
 Environments and variables → Custom variables**:
 
-| Key                        | Value                                                                                                 |
-| -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `PUBLIC_CHECKOUT_DOMAIN`   | The checkout domain: the `….myshopify.com` address until a domain is connected, then that domain      |
-| `PUBLIC_GA_MEASUREMENT_ID` | Your GA4 measurement ID, `G-…` (GA4 → Admin → Data streams → Web). Leave it out and no analytics load |
+| Key                         | Value                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `PUBLIC_CHECKOUT_DOMAIN`    | The checkout domain: the `….myshopify.com` address until a domain is connected, then that domain                   |
+| `PUBLIC_GA_MEASUREMENT_ID`  | Your GA4 measurement ID, `G-…` (GA4 → Admin → Data streams → Web). Leave it out and no analytics load              |
+| `PUBLIC_CLARITY_PROJECT_ID` | Optional. Your Microsoft Clarity project ID (Clarity → Settings → Overview). Leave it out and Clarity doesn't load |
 
 Then redeploy, so the new deployment picks them up. For local development the same keys go in
 `.env` (`npx shopify hydrogen env pull` fetches the storefront's own).
@@ -61,6 +62,10 @@ With `PUBLIC_GA_MEASUREMENT_ID` set, GA4 records page views and a `whatsapp_clic
 the item name in an `item` parameter, on every order button. Register `item` as an event-scoped
 custom dimension in GA4 to report on it. Shopify's own analytics run regardless. The site's
 security policy only allows Google's hosts when the ID is set (`app/entry.server.tsx`).
+
+With `PUBLIC_CLARITY_PROJECT_ID` set, Microsoft Clarity records sessions and heatmaps; its hosts
+are likewise only allowed while the ID is set. The floating button's clicks report as
+`whatsapp_click` with `item` = `float`.
 
 ## Sharing image
 

@@ -1,35 +1,15 @@
 // The one query the film runs (PORTING-DECISIONS.md · C): every scene_* entry, site_settings
 // with its menu collections and their products, and the drops. Field keys are the ones in
-// section B; ./model.ts maps the result to the scenes' props.
+// section B; ./model.ts maps the result to the scenes' props. /menu and the root layout run
+// the two small queries at the bottom, sharing the film's menu fragments.
 
-export const FILM_QUERY = `#graphql
+/** The menu's collections and products, shared by the film (S4) and /menu. */
+const MENU_FRAGMENTS = `#graphql
   fragment FilmImage on Image {
     url
     width
     height
     altText
-  }
-
-  fragment FilmFile on MetaobjectField {
-    reference {
-      __typename
-      ... on MediaImage {
-        image {
-          ...FilmImage
-        }
-      }
-      ... on Video {
-        sources {
-          url
-          mimeType
-          width
-          height
-        }
-        previewImage {
-          ...FilmImage
-        }
-      }
-    }
   }
 
   fragment FilmProduct on Product {
@@ -74,6 +54,32 @@ export const FILM_QUERY = `#graphql
     products(first: 50, sortKey: MANUAL) {
       nodes {
         ...FilmProduct
+      }
+    }
+  }
+` as const;
+
+export const FILM_QUERY = `#graphql
+  ${MENU_FRAGMENTS}
+
+  fragment FilmFile on MetaobjectField {
+    reference {
+      __typename
+      ... on MediaImage {
+        image {
+          ...FilmImage
+        }
+      }
+      ... on Video {
+        sources {
+          url
+          mimeType
+          width
+          height
+        }
+        previewImage {
+          ...FilmImage
+        }
       }
     }
   }
@@ -220,6 +226,41 @@ export const FILM_QUERY = `#graphql
       nodes {
         ...FilmDrop
       }
+    }
+  }
+` as const;
+
+/** /menu: the menu chapters in order, plus the settings its cards need (D.6). */
+export const MENU_QUERY = `#graphql
+  ${MENU_FRAGMENTS}
+  query Menu($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {
+      whatsapp_number: field(key: "whatsapp_number") { value }
+      location_label: field(key: "location_label") { value }
+      broadcast_link: field(key: "broadcast_link") { value }
+      instagram: field(key: "instagram") { value }
+      menu_sections: field(key: "menu_sections") {
+        references(first: 20) {
+          nodes {
+            ... on Collection {
+              ...FilmCollection
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
+/** Every page (app/root.tsx): the few site_settings fields the layout itself shows. */
+export const SITE_SETTINGS_QUERY = `#graphql
+  query SiteSettings($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    settings: metaobject(handle: {type: "site_settings", handle: "site"}) {
+      whatsapp_number: field(key: "whatsapp_number") { value }
+      whatsapp_float_enabled: field(key: "whatsapp_float_enabled") { value }
+      whatsapp_float_message: field(key: "whatsapp_float_message") { value }
     }
   }
 ` as const;

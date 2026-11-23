@@ -2,7 +2,8 @@ import {useEffect} from 'react';
 import {trackWhatsAppClick} from '~/lib/film/format';
 
 // One listener for every order link: each Cta that opens WhatsApp carries data-wa-item.
-// Clicks, middle-clicks and keyboard activation all arrive here.
+// Clicks, middle-clicks and keyboard activation all arrive here. Mounted once for every page in
+// app/root.tsx, so the floating button (data-wa-item="float") is counted off the film too.
 
 export function WhatsAppTracker() {
   useEffect(() => {
