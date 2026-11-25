@@ -6,7 +6,8 @@
 //   npm run shopify:setup -- --images <folder>  # also upload the images found in <folder>
 //                                               (repeat --images to search several folders)
 //   npm run shopify:setup -- --publish          # (re)publish the menu to the storefront channel
-//   npm run shopify:setup -- --sections         # put the menu sections in the seed's order (MENU_SEED)
+//   npm run shopify:setup -- --reset <type.field>  # set one field of existing entries back to the
+//                                               repo's value, e.g. --reset scene_pit.note (repeatable)
 //   npm run shopify:setup -- --overwrite        # reset existing content to the repo's originals
 //
 // Safe to re-run. Definitions are kept in line with schema.ts. Content (products, collections,
@@ -95,8 +96,8 @@ type Options = {
   images: string[];
   overwrite: boolean;
   publish: boolean;
-  /** Set site_settings.menu_sections to the seed's sections, in the seed's order. */
-  sections: boolean;
+  /** Entry fields (`type.field`) to set back to the repo's value on entries that already exist. */
+  reset: Set<string>;
 };
 
 /** Offline (no credentials) or a live store. Offline, everything reads as missing. */
@@ -109,7 +110,7 @@ async function main() {
       images: {type: 'string', multiple: true},
       overwrite: {type: 'boolean', default: false},
       publish: {type: 'boolean', default: false},
-      sections: {type: 'boolean', default: false},
+      reset: {type: 'string', multiple: true},
       help: {type: 'boolean', short: 'h', default: false},
     },
   });
@@ -122,7 +123,7 @@ async function main() {
     images: (values.images ?? []).map((folder) => resolve(folder)),
     overwrite: values.overwrite,
     publish: values.publish,
-    sections: values.sections,
+    reset: new Set(values.reset ?? []),
   };
   for (const folder of options.images) {
     if (!existsSync(folder))
@@ -787,19 +788,14 @@ async function syncEntries(
 
     let fields = entry.fields;
     if (found && !options.overwrite) {
-      // Only fill image fields that are still empty; never touch edited text. --sections also
-      // sets the menu sections and their order, when they differ from the seed's.
-      const empty = new Set(
-        found.fields.filter((f) => !f.value).map((f) => f.key),
-      );
-      const current = found.fields.find((f) => f.key === 'menu_sections');
+      // Only fill image fields that are still empty; never touch edited text, except a field
+      // named with --reset, which goes back to the repo's value when it differs.
+      const now = new Map(found.fields.map((f) => [f.key, f.value]));
       fields = entry.fields.filter(
         (f) =>
-          (imageKeys.has(`${entry.type}.${f.key}`) && empty.has(f.key)) ||
-          (options.sections &&
-            entry.type === 'site_settings' &&
-            f.key === 'menu_sections' &&
-            sameList(f.value, current?.value) === false),
+          (imageKeys.has(`${entry.type}.${f.key}`) && !now.get(f.key)) ||
+          (options.reset.has(`${entry.type}.${f.key}`) &&
+            !sameValue(f.value, now.get(f.key))),
       );
       metaobjectIds.set(label, found.id);
       if (!fields.length) {
@@ -835,22 +831,28 @@ async function syncEntries(
   }
 }
 
-/** Whether two JSON list values hold the same items in the same order. */
-function sameList(a: string | null | undefined, b: string | null | undefined) {
-  const parse = (v: string | null | undefined) =>
-    JSON.stringify(JSON.parse(v || '[]'));
-  return parse(a) === parse(b);
+/** Whether two field values are the same; lists (stored as JSON) compare item by item. */
+function sameValue(a: string, b: string | null | undefined) {
+  const tidy = (v: string) => {
+    try {
+      return JSON.stringify(JSON.parse(v));
+    } catch {
+      return v;
+    }
+  };
+  return tidy(a) === tidy(b ?? '');
 }
 
 function readUsage() {
-  return `Usage: npm run shopify:setup -- [--dry-run] [--images <folder>] [--publish] [--sections] [--overwrite]
+  return `Usage: npm run shopify:setup -- [--dry-run] [--images <folder>] [--publish] [--reset <type.field>] [--overwrite]
 
   --dry-run          Show what would change. Without credentials, works offline.
   --images <folder>  Upload the images in <folder> (filenames as listed in
                      scripts/shopify/content.ts) and fill empty image fields.
                      Repeat it to search several folders, first match wins.
   --publish          Publish the whole menu to the Hydrogen channel.
-  --sections         Put the menu sections in the seed's order (MENU_SEED).
+  --reset <t.field>  Set one field of existing entries back to the repo's value,
+                     e.g. --reset site_settings.menu_sections. Repeatable.
   --overwrite        Reset existing products and entries to the repo's originals.
 
 Credentials: .env.setup (see .env.setup.example and docs/shopify-access.md).`;

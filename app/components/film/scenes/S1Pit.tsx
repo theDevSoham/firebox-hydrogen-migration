@@ -5,7 +5,8 @@ import {Placeholder} from '~/components/film/ui/Placeholder';
 import {Smoke} from '~/components/film/media/Smoke';
 import type {Film} from '~/lib/film/model';
 
-// S1 · The pit. Establishing shot: rooftop at dusk, one line, one button.
+// S1 · The pit. Establishing shot: rooftop at dusk, one line, two buttons: down to the film's
+// dishes, or across to the whole menu.
 
 export function S1Pit({pit: text}: {pit: Film['pit']}) {
   return (
@@ -37,7 +38,16 @@ export function S1Pit({pit: text}: {pit: Film['pit']}) {
             <Cta href="#menu" size="l" glyph={false}>
               {text.cta}
             </Cta>
-            <span className="fb-yanone s1-note">{text.note}</span>
+            {/* The film shows a few dishes; this one opens the whole menu. */}
+            <Cta
+              href="/menu"
+              variant="on-red"
+              size="l"
+              glyph={false}
+              className="s1-note"
+            >
+              {text.note}
+            </Cta>
           </div>
           <Placeholder>Concept art · smoke is a stand-in for video</Placeholder>
         </div>

@@ -262,13 +262,18 @@ export const METAOBJECT_DEFINITIONS: MetaobjectDef[] = [
     type: 'scene_pit',
     name: 'Scene 1 · The pit',
     description:
-      'The first screen: the rooftop art, the headline and the pre-order button. ' +
+      'The first screen: the rooftop art, the headline and the two buttons. ' +
       EMPTY_FALLS_BACK,
     fields: [
       text('headline', 'Headline', 40),
       text('sub', 'Line under the headline', 90),
       text('cta', 'Button', 30, 'Scrolls down to the menu.'),
-      text('note', 'Small print beside the button', 60),
+      text(
+        'note',
+        'Second button',
+        40,
+        'Opens the full menu page. Keep it short: it is a button.',
+      ),
       image(
         'art',
         'Art, tablets and computers',
