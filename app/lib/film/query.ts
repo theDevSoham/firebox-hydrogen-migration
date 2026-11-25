@@ -48,9 +48,6 @@ const MENU_FRAGMENTS = `#graphql
     id
     handle
     title
-    theme: metafield(namespace: "firebox", key: "theme") {
-      value
-    }
     products(first: 50, sortKey: MANUAL) {
       nodes {
         ...FilmProduct
@@ -139,6 +136,15 @@ export const FILM_QUERY = `#graphql
       og_image: field(key: "og_image") { ...FilmFile }
       seo_title: field(key: "seo_title") { value }
       seo_description: field(key: "seo_description") { value }
+    }
+
+    # The dishes the film shows (seed.ts HOME_COLLECTION): Shopify's "Home page" collection.
+    home: collection(handle: "frontpage") {
+      products(first: 50) {
+        nodes {
+          handle
+        }
+      }
     }
 
     pit: metaobject(handle: {type: "scene_pit", handle: "home"}) {

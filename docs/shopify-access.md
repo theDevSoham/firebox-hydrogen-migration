@@ -114,4 +114,7 @@ placeholders in `public/placeholders/` until real ones are added, in either of t
 
 Safe at any time. Definitions are kept in line with `scripts/shopify/schema.ts`. Products,
 collections and entries are only created when missing, so edits made in the admin are kept.
-`--overwrite` resets them to the repo's originals. Nothing is ever deleted.
+`--overwrite` resets them to the repo's originals. `--sections` puts the menu sections (the site settings entry's **Menu chapters**) in the
+seed's order (`MENU_SEED` in `app/lib/film/seed.ts`). The one thing the script deletes is a retired
+menu section (`RETIRED_SECTIONS` in `app/lib/film/seed.ts`), and only once it holds no dishes;
+the dry run lists it with a `-` first.

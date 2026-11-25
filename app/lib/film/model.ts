@@ -174,7 +174,12 @@ function video(field: File): FilmVideo | null {
   };
 }
 
-const THEMES: SectionTheme[] = ['ember', 'night', 'kraft', 'bark'];
+/**
+ * Section backgrounds, by position: the first section showing is kraft, the next ember, and so on
+ * round. A colour belongs to the slot, not to the collection in it, so reordering the menu keeps
+ * the same run of colours (D.7).
+ */
+const SECTION_THEMES: SectionTheme[] = ['kraft', 'ember', 'night', 'bark'];
 const DROP_RANK: Record<DropStatus, number> = {
   live: 0,
   announced: 1,
@@ -192,11 +197,9 @@ function toMenu(field: MenuSections): MenuChapter[] {
   return sections
     .filter((node): node is FilmCollectionFragment => 'handle' in node)
     .map((section) => {
-      const theme = section.theme?.value as SectionTheme | undefined;
       return {
         id: section.handle,
         title: section.title,
-        theme: theme && THEMES.includes(theme) ? theme : 'night',
         items: section.products.nodes.map((p): MenuItem => ({
           id: p.handle,
           name: p.title,
@@ -223,7 +226,27 @@ function toMenu(field: MenuSections): MenuChapter[] {
         })),
       };
     })
+    .filter((chapter) => chapter.items.length > 0)
+    .map((chapter, i) => ({
+      ...chapter,
+      theme: SECTION_THEMES[i % SECTION_THEMES.length],
+    }));
+}
+
+/**
+ * The film's menu: only the dishes in the Home page collection, each under its menu section
+ * (/menu shows them all). While that collection is empty or missing, or none of its dishes is on
+ * the menu, the film shows the whole menu, so S4 is never blank (D.2.5).
+ */
+function toHomeMenu(menu: MenuChapter[], home: FilmQuery['home']) {
+  const picks = new Set(home?.products.nodes.map((p) => p.handle));
+  const picked = menu
+    .map((chapter) => ({
+      ...chapter,
+      items: chapter.items.filter((item) => picks.has(item.id)),
+    }))
     .filter((chapter) => chapter.items.length > 0);
+  return picked.length ? picked : menu;
 }
 
 /** Live first, then announced, then sold out (newest first). Archived never shows; drafts never arrive. */
@@ -358,7 +381,7 @@ export function toFilm(data: FilmQuery) {
       ),
       ogImage: image(settings?.og_image),
     },
-    menu: toMenu(settings?.menu_sections),
+    menu: toHomeMenu(toMenu(settings?.menu_sections), data.home),
     drops: toDrops(data.drops?.nodes ?? []),
 
     pit: {

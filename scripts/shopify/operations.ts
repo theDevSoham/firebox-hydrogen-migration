@@ -65,7 +65,7 @@ export const FIND_FILE = `#graphql
 
 export const FIND_COLLECTION = `#graphql
   query FireboxFindCollection($handle: String!) {
-    collectionByIdentifier(identifier: {handle: $handle}) { id handle }
+    collectionByIdentifier(identifier: {handle: $handle}) { id handle productsCount { count } }
   }
 `;
 
@@ -73,6 +73,15 @@ export const COLLECTION_CREATE = `#graphql
   mutation FireboxCollectionCreate($collection: CollectionCreateInput!) {
     collectionCreate(collection: $collection) {
       collection { id handle }
+      userErrors { field message }
+    }
+  }
+`;
+
+export const COLLECTION_DELETE = `#graphql
+  mutation FireboxCollectionDelete($id: ID!) {
+    collectionDelete(input: {id: $id}) {
+      deletedCollectionId
       userErrors { field message }
     }
   }
@@ -155,6 +164,7 @@ export const OPERATIONS = {
   FIND_FILE,
   FIND_COLLECTION,
   COLLECTION_CREATE,
+  COLLECTION_DELETE,
   COLLECTION_REORDER,
   FIND_PRODUCT,
   PRODUCT_SET,

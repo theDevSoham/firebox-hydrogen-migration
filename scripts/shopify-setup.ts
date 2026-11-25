@@ -6,12 +6,14 @@
 //   npm run shopify:setup -- --images <folder>  # also upload the images found in <folder>
 //                                               (repeat --images to search several folders)
 //   npm run shopify:setup -- --publish          # (re)publish the menu to the storefront channel
+//   npm run shopify:setup -- --sections         # put the menu sections in the seed's order (MENU_SEED)
 //   npm run shopify:setup -- --overwrite        # reset existing content to the repo's originals
 //
 // Safe to re-run. Definitions are kept in line with schema.ts. Content (products, collections,
 // entries) is only created when missing: anything edited in the Shopify admin is left alone,
-// unless --overwrite. Nothing is ever deleted. Images are opt-in (--images); without them the
-// image fields stay empty and the site shows its placeholders.
+// unless --overwrite. The only thing ever deleted is a retired menu section (seed.ts
+// RETIRED_SECTIONS), and only once it holds no dishes. Images are opt-in (--images); without them
+// the image fields stay empty and the site shows its placeholders.
 //
 // Credentials come from .env.setup (see .env.setup.example and docs/shopify-access.md).
 
@@ -29,15 +31,18 @@ import {
   type Admin,
 } from './shopify/admin';
 import {
-  COLLECTIONS,
+  ALL_COLLECTIONS,
+  HOME,
   IMAGE_SLOTS,
   PRODUCTS,
   entries,
   productInput,
 } from './shopify/content';
+import {RETIRED_SECTIONS} from '../app/lib/film/seed';
 import {
   ATTACH_FILE,
   COLLECTION_CREATE,
+  COLLECTION_DELETE,
   COLLECTION_REORDER,
   DEFINITIONS,
   FIND_COLLECTION,
@@ -64,13 +69,14 @@ import {
 
 // ---------- reporting ----------
 
-type Mark = '+' | '~' | '=' | '!' | '·';
-const tally = {created: 0, updated: 0, unchanged: 0, warnings: 0};
+type Mark = '+' | '~' | '-' | '=' | '!' | '·';
+const tally = {created: 0, updated: 0, deleted: 0, unchanged: 0, warnings: 0};
 const warnings: string[] = [];
 
 function say(mark: Mark, what: string, note = '') {
   if (mark === '+') tally.created++;
   if (mark === '~') tally.updated++;
+  if (mark === '-') tally.deleted++;
   if (mark === '=') tally.unchanged++;
   if (mark === '!') {
     tally.warnings++;
@@ -89,6 +95,8 @@ type Options = {
   images: string[];
   overwrite: boolean;
   publish: boolean;
+  /** Set site_settings.menu_sections to the seed's sections, in the seed's order. */
+  sections: boolean;
 };
 
 /** Offline (no credentials) or a live store. Offline, everything reads as missing. */
@@ -101,6 +109,7 @@ async function main() {
       images: {type: 'string', multiple: true},
       overwrite: {type: 'boolean', default: false},
       publish: {type: 'boolean', default: false},
+      sections: {type: 'boolean', default: false},
       help: {type: 'boolean', short: 'h', default: false},
     },
   });
@@ -113,6 +122,7 @@ async function main() {
     images: (values.images ?? []).map((folder) => resolve(folder)),
     overwrite: values.overwrite,
     publish: values.publish,
+    sections: values.sections,
   };
   for (const folder of options.images) {
     if (!existsSync(folder))
@@ -176,13 +186,14 @@ async function main() {
     images,
   );
   await reorderNewCollections(store, collectionIds, productIds);
+  await deleteRetiredCollections(store);
   await publishMenu(store, options, collectionIds, newProducts);
   await syncEntries(store, options, images, collectionIds.ids);
 
   heading(store.write ? 'Done.' : 'Dry run: nothing was changed.');
   const verb = store.write ? '' : ' (would be)';
   console.log(
-    `  ${tally.created} created${verb} · ${tally.updated} updated${verb} · ${tally.unchanged} already there · ${tally.warnings} warning(s)`,
+    `  ${tally.created} created${verb} · ${tally.updated} updated${verb} · ${tally.deleted} deleted${verb} · ${tally.unchanged} already there · ${tally.warnings} warning(s)`,
   );
   for (const w of warnings) console.log(`  ! ${w}`);
 }
@@ -457,10 +468,10 @@ async function syncImages(store: Store, options: Options): Promise<Images> {
 type CollectionIds = {ids: Map<string, string>; created: Set<string>};
 
 async function syncCollections(store: Store): Promise<CollectionIds> {
-  heading('Menu chapters (collections)');
+  heading('Menu chapters and Home page (collections)');
   const ids = new Map<string, string>();
   const created = new Set<string>();
-  for (const c of COLLECTIONS) {
+  for (const c of ALL_COLLECTIONS) {
     const found = store.admin
       ? (
           await store.admin.query<{
@@ -473,7 +484,7 @@ async function syncCollections(store: Store): Promise<CollectionIds> {
       ids.set(c.handle, found.id);
       continue;
     }
-    say('+', `${c.handle}`, `"${c.title}", ${c.theme}`);
+    say('+', `${c.handle}`, `"${c.title}"`);
     created.add(c.handle);
     if (store.write) {
       const r = await store.admin!.query<{
@@ -483,14 +494,6 @@ async function syncCollections(store: Store): Promise<CollectionIds> {
           title: c.title,
           handle: c.handle,
           sortOrder: 'MANUAL',
-          metafields: [
-            {
-              namespace: 'firebox',
-              key: 'theme',
-              type: 'single_line_text_field',
-              value: c.theme,
-            },
-          ],
         },
       });
       check(`Create collection ${c.handle}`, r.collectionCreate.userErrors);
@@ -551,13 +554,17 @@ async function syncProducts(
     );
     if (!found) created.add(p.handle);
     if (store.write) {
-      const collectionId = collectionIds.get(p.collection);
+      // Its menu section, plus Home page when the seed marks it for the film.
+      const inCollections = [
+        collectionIds.get(p.collection),
+        p.home ? collectionIds.get(HOME.handle) : undefined,
+      ].filter((id): id is string => Boolean(id));
       const r = await store.admin!.query<{
         productSet: {product: {id: string} | null; userErrors: []};
       }>(PRODUCT_SET, {
         identifier: {handle: p.handle},
         input: productInput(p, {
-          collectionId,
+          collectionIds: inCollections,
           imageId: found?.media.nodes.length ? undefined : imageId,
         }),
       });
@@ -577,8 +584,9 @@ async function reorderNewCollections(
   productIds: Map<string, string>,
 ) {
   if (!store.write) return;
-  for (const c of COLLECTIONS) {
-    if (!collections.created.has(c.handle)) continue;
+  for (const c of ALL_COLLECTIONS) {
+    if (!collections.created.has(c.handle) || !c.productHandles.length)
+      continue;
     const moves = c.productHandles
       .map((handle, i) => ({
         id: productIds.get(handle),
@@ -598,6 +606,47 @@ async function reorderNewCollections(
   }
 }
 
+/**
+ * Deletes the menu sections the seed has retired (RETIRED_SECTIONS). The one thing this script
+ * deletes, and only a collection that holds no products: one that still has dishes is left alone
+ * with a warning, so move them to another section first. Deleting can't be undone.
+ */
+async function deleteRetiredCollections(store: Store) {
+  if (!RETIRED_SECTIONS.length || !store.admin) return;
+  heading('Retired menu chapters (collections)');
+  for (const handle of RETIRED_SECTIONS) {
+    const found = (
+      await store.admin.query<{
+        collectionByIdentifier: {
+          id: string;
+          productsCount: {count: number} | null;
+        } | null;
+      }>(FIND_COLLECTION, {handle})
+    ).collectionByIdentifier;
+    if (!found) {
+      say('=', handle, '(already gone)');
+      continue;
+    }
+    const count = found.productsCount?.count ?? 0;
+    if (count > 0) {
+      say(
+        '!',
+        `${handle} still has ${count} dish(es), so it was not deleted.`,
+        'Move them to another section, then run again.',
+      );
+      continue;
+    }
+    say('-', handle, 'empty, so deleted from the store (cannot be undone)');
+    if (store.write) {
+      const r = await store.admin.query<{collectionDelete: {userErrors: []}}>(
+        COLLECTION_DELETE,
+        {id: found.id},
+      );
+      check(`Delete collection ${handle}`, r.collectionDelete.userErrors);
+    }
+  }
+}
+
 // ---------- 4. publishing to the storefront ----------
 
 /**
@@ -614,7 +663,7 @@ async function publishMenu(
 ) {
   heading('Storefront channel');
   const targets: {label: string; id?: string; productHandle?: string}[] = [
-    ...COLLECTIONS.filter(
+    ...ALL_COLLECTIONS.filter(
       (c) => options.publish || collections.created.has(c.handle),
     ).map((c) => ({
       label: `collection ${c.handle}`,
@@ -738,19 +787,26 @@ async function syncEntries(
 
     let fields = entry.fields;
     if (found && !options.overwrite) {
-      // Only fill image fields that are still empty; never touch edited text.
+      // Only fill image fields that are still empty; never touch edited text. --sections also
+      // sets the menu sections and their order, when they differ from the seed's.
       const empty = new Set(
         found.fields.filter((f) => !f.value).map((f) => f.key),
       );
+      const current = found.fields.find((f) => f.key === 'menu_sections');
       fields = entry.fields.filter(
-        (f) => imageKeys.has(`${entry.type}.${f.key}`) && empty.has(f.key),
+        (f) =>
+          (imageKeys.has(`${entry.type}.${f.key}`) && empty.has(f.key)) ||
+          (options.sections &&
+            entry.type === 'site_settings' &&
+            f.key === 'menu_sections' &&
+            sameList(f.value, current?.value) === false),
       );
       metaobjectIds.set(label, found.id);
       if (!fields.length) {
         say('=', label);
         continue;
       }
-      say('~', label, `adds ${fields.map((f) => f.key).join(', ')}`);
+      say('~', label, `sets ${fields.map((f) => f.key).join(', ')}`);
     } else {
       say(
         found ? '~' : '+',
@@ -779,14 +835,22 @@ async function syncEntries(
   }
 }
 
+/** Whether two JSON list values hold the same items in the same order. */
+function sameList(a: string | null | undefined, b: string | null | undefined) {
+  const parse = (v: string | null | undefined) =>
+    JSON.stringify(JSON.parse(v || '[]'));
+  return parse(a) === parse(b);
+}
+
 function readUsage() {
-  return `Usage: npm run shopify:setup -- [--dry-run] [--images <folder>] [--publish] [--overwrite]
+  return `Usage: npm run shopify:setup -- [--dry-run] [--images <folder>] [--publish] [--sections] [--overwrite]
 
   --dry-run          Show what would change. Without credentials, works offline.
   --images <folder>  Upload the images in <folder> (filenames as listed in
                      scripts/shopify/content.ts) and fill empty image fields.
                      Repeat it to search several folders, first match wins.
   --publish          Publish the whole menu to the Hydrogen channel.
+  --sections         Put the menu sections in the seed's order (MENU_SEED).
   --overwrite        Reset existing products and entries to the repo's originals.
 
 Credentials: .env.setup (see .env.setup.example and docs/shopify-access.md).`;

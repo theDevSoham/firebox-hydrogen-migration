@@ -61,7 +61,7 @@ Every metaobject definition is set to **Storefront access: public read**.
 |---|---|---|
 | `id` (slug) | Collection handle | — |
 | `title` (the swelling word) | Collection title | — |
-| `theme` | Metafield `firebox.theme` | single line, choices: `ember`, `night`, `kraft`, `bark` |
+| `theme` | Not stored: by position (D.7) | `kraft`, `ember`, `night`, `bark`, in that order |
 | `order` | `site_settings.menu_sections` | `list.collection_reference` (drag to reorder) |
 
 ### B.3 Drops → `drop` metaobject
@@ -269,6 +269,15 @@ The menu now sells through **Shopify cart + Shopify-hosted checkout** instead of
 - Drops (S6) and the footer number stay on WhatsApp until a drop links a product (B.3 `product`).
 - Default country is India (D.1.3), so carts and checkout are in INR.
 - Still to settle in the admin: the payment provider (D.4.4: Razorpay / PayU / Cashfree, since Shopify Payments isn't offered in India), local pickup at Mukundapur (D.4.3), and inventory tracking on every product.
+
+### D.7 Change after the freeze (2026-11-25)
+
+The menu is organised by meat, and the home page picks its dishes.
+
+- Menu sections are **Pork, Buff, Chicken**, in that order (`MENU_SEED`). The seven original dishes are in Pork; Chicken and Buff each start with sliders (no art, price or description yet). A section with no dish stays hidden.
+- **Belly, Ribs, Pulled pork and Burnt ends are retired.** `npm run shopify:setup` deletes those four collections from the store, once they hold no dishes (`RETIRED_SECTIONS`). It deletes nothing else.
+- **Section backgrounds go by position, not by section**: the first section showing is kraft, then ember, night, bark, and round again (`SECTION_THEMES` in `app/lib/film/model.ts`). Reordering the menu keeps that run of colours. The `firebox.theme` collection field is no longer read or seeded; the store may still hold it.
+- The **home page (film, S4)** shows only the dishes in Shopify's **Home page** collection (handle `frontpage`), each under its menu section. `/menu` shows the whole menu. While Home page is empty, the film shows the whole menu (D.2.5).
 
 ## E. Build order
 
