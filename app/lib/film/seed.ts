@@ -4,8 +4,6 @@ import {PLACEHOLDER_ART, type ArtOriginal} from './originals';
 // Products/Collections (PORTING-DECISIONS.md · B.1–B.2) and `drop` metaobjects (B.3).
 // scripts/shopify-setup.ts seeds the store from them. [Bracketed] facts stay placeholders until the client confirms them.
 
-export type SectionTheme = 'ember' | 'night' | 'kraft' | 'bark';
-
 export type ProductSeed = {
   handle: string;
   title: string;
@@ -14,6 +12,8 @@ export type ProductSeed = {
   price: number | null;
   /** `firebox.unit`, e.g. "350 g". */
   unit: string;
+  /** Also in the Home page collection (HOME_COLLECTION): one of the dishes the film shows. */
+  home?: boolean;
   soldOut?: boolean;
   isNew?: boolean;
   image: ArtOriginal | null;
@@ -24,16 +24,31 @@ export type SectionSeed = {
   handle: string;
   /** The swelling word. */
   title: string;
-  theme: SectionTheme;
   products: ProductSeed[];
 };
 
-/** In menu order (`site_settings.menu_sections`); products in collection order. */
+/**
+ * The film (home page) shows the dishes in this collection and nothing else, each under its menu
+ * section; /menu shows the whole menu. Only while it is empty or missing does the film show the
+ * whole menu too (D.2.5). It is Shopify's built-in "Home page" collection.
+ */
+export const HOME_COLLECTION = {handle: 'frontpage', title: 'Home page'};
+
+/**
+ * Sections the menu no longer uses (D.7). The setup script deletes these collections from the
+ * store, and only while they hold no products.
+ */
+export const RETIRED_SECTIONS = ['belly', 'ribs', 'pulled', 'burnt'];
+
+/**
+ * In menu order (`site_settings.menu_sections`); products in collection order. A section with no
+ * dishes stays hidden on the site until it has one. Background colours go by position, not by
+ * section (model.ts SECTION_THEMES).
+ */
 export const MENU_SEED: SectionSeed[] = [
   {
-    handle: 'belly',
-    title: 'Belly',
-    theme: 'ember',
+    handle: 'pork',
+    title: 'Pork',
     products: [
       {
         handle: 'brisket-style-belly',
@@ -42,6 +57,7 @@ export const MENU_SEED: SectionSeed[] = [
           'Smoked like a brisket for about nine hours. Special-only, and it usually sells out.',
         price: null,
         unit: '9 hrs',
+        home: true,
         image: PLACEHOLDER_ART.belly,
         whatsappMessage:
           "Hi Firebox! When's the next brisket-style belly drop?",
@@ -56,13 +72,6 @@ export const MENU_SEED: SectionSeed[] = [
         image: null,
         whatsappMessage: "Hi Firebox! I'd like to pre-order The Imposter × 1.",
       },
-    ],
-  },
-  {
-    handle: 'ribs',
-    title: 'Ribs',
-    theme: 'night',
-    products: [
       {
         handle: 'whole-rib-racks',
         title: 'Whole rib racks',
@@ -85,13 +94,6 @@ export const MENU_SEED: SectionSeed[] = [
         whatsappMessage:
           "Hi Firebox! I'd like to pre-order Smoked & Fried Ribs × 1.",
       },
-    ],
-  },
-  {
-    handle: 'pulled',
-    title: 'Pulled pork',
-    theme: 'kraft',
-    products: [
       {
         handle: 'smoked-pulled-pork',
         title: 'Smoked pulled pork',
@@ -112,13 +114,6 @@ export const MENU_SEED: SectionSeed[] = [
         whatsappMessage:
           "Hi Firebox! I'd like to pre-order Pulled Pork Sliders × 1.",
       },
-    ],
-  },
-  {
-    handle: 'burnt',
-    title: 'Burnt ends',
-    theme: 'bark',
-    products: [
       {
         handle: 'spiked-burnt-ends',
         title: 'Spiked burnt ends',
@@ -130,6 +125,39 @@ export const MENU_SEED: SectionSeed[] = [
         image: PLACEHOLDER_ART.burntEnds,
         whatsappMessage:
           "Hi Firebox! I'd like to pre-order Spiked Burnt Ends × 1.",
+      },
+    ],
+  },
+  {
+    handle: 'buff',
+    title: 'Buff',
+    products: [
+      {
+        handle: 'buff-sliders',
+        title: 'Buff sliders',
+        description: '[Description]',
+        price: null,
+        unit: '2 pcs',
+        home: true,
+        image: null,
+        whatsappMessage: "Hi Firebox! I'd like to pre-order Buff Sliders × 1.",
+      },
+    ],
+  },
+  {
+    handle: 'chicken',
+    title: 'Chicken',
+    products: [
+      {
+        handle: 'chicken-sliders',
+        title: 'Chicken sliders',
+        description: '[Description]',
+        price: null,
+        unit: '2 pcs',
+        home: true,
+        image: null,
+        whatsappMessage:
+          "Hi Firebox! I'd like to pre-order Chicken Sliders × 1.",
       },
     ],
   },

@@ -10,6 +10,7 @@ import {ORIGINALS, type ArtOriginal} from '../../app/lib/film/originals';
 import {
   DROP_MESSAGE,
   DROPS_SEED,
+  HOME_COLLECTION,
   MENU_SEED,
   type ProductSeed,
 } from '../../app/lib/film/seed';
@@ -68,16 +69,25 @@ export const IMAGE_SLOTS: ImageSlot[] = [
 export type CollectionEntry = {
   handle: string;
   title: string;
-  theme: string;
   productHandles: string[];
 };
 
 export const COLLECTIONS: CollectionEntry[] = MENU_SEED.map((section) => ({
   handle: section.handle,
   title: section.title,
-  theme: section.theme,
   productHandles: section.products.map((p) => p.handle),
 }));
+
+/** The dishes the film shows (seed.ts HOME_COLLECTION). Not a menu section. */
+export const HOME: CollectionEntry = {
+  ...HOME_COLLECTION,
+  productHandles: MENU_SEED.flatMap((section) =>
+    section.products.filter((p) => p.home).map((p) => p.handle),
+  ),
+};
+
+/** Every collection the setup script creates and publishes: the menu sections, then Home page. */
+export const ALL_COLLECTIONS: CollectionEntry[] = [...COLLECTIONS, HOME];
 
 export const PRODUCTS: (ProductSeed & {collection: string})[] =
   MENU_SEED.flatMap((section) =>
@@ -90,14 +100,14 @@ const escapeHtml = (s: string) =>
 /** productSet input for a seed product. A missing price is saved as 0, which the site shows as [Price]. */
 export function productInput(
   p: ProductSeed,
-  refs: {collectionId?: string; imageId?: string},
+  refs: {collectionIds?: string[]; imageId?: string},
 ) {
   return {
     title: p.title,
     handle: p.handle,
     descriptionHtml: `<p>${escapeHtml(p.description)}</p>`,
     status: 'ACTIVE',
-    ...(refs.collectionId ? {collections: [refs.collectionId]} : {}),
+    ...(refs.collectionIds?.length ? {collections: refs.collectionIds} : {}),
     productOptions: [{name: 'Title', values: [{name: 'Default Title'}]}],
     variants: [
       {

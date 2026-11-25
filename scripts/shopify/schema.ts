@@ -122,15 +122,6 @@ export const METAFIELD_DEFINITIONS: MetafieldDef[] = [
       'Pre-filled when someone taps Order. Can use {name}, {price}.',
     ),
   },
-  {
-    namespace: 'firebox',
-    ownerType: 'COLLECTION',
-    key: 'theme',
-    name: 'Chapter colour',
-    type: 'single_line_text_field',
-    description: 'The colour of this menu chapter on the site.',
-    validations: [choices('ember', 'night', 'kraft', 'bark')],
-  },
 ];
 
 // ---------- B.3–B.5 · metaobjects, in the order they must be created ----------
