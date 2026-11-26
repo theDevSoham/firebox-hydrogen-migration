@@ -6,16 +6,19 @@ import {primeTransforms, useSceneMotion} from '~/lib/film/motion';
 // into a scrapbook pile (pinned on desktop), the paper stays still. Tilts are fixed per card;
 // motion is only vertical. A reel straightens and lifts on hover or focus.
 
+// Each word's shear: xPercent from → to. Ki and Bolchhe drift off their marks; Kolkata? comes in
+// from the right and stops on its mark, so the whole word stays on screen (it is nearly as wide
+// as the page: it only has that much room to travel).
 const SHEAR = {
   d: [
-    ['s7-w1', 70],
-    ['s7-w2', 25],
-    ['s7-w3', -50],
+    ['s7-w1', 0, 70],
+    ['s7-w2', 0, 25],
+    ['s7-w3', 34, 0],
   ],
   m: [
-    ['s7-w1', 30],
-    ['s7-w2', -18],
-    ['s7-w3', -30],
+    ['s7-w1', 0, 30],
+    ['s7-w2', 0, -18],
+    ['s7-w3', 12, 0],
   ],
 } as const;
 
@@ -29,12 +32,12 @@ export function S7Motion({children}: {children: ReactNode}) {
     primeTransforms(pile, '.s7-w');
 
     if (!d) {
-      SHEAR.m.forEach(([word, x]) => {
+      SHEAR.m.forEach(([word, from, to]) => {
         gsap.fromTo(
           `.${word}`,
-          {xPercent: 0},
+          {xPercent: from},
           {
-            xPercent: x,
+            xPercent: to,
             ease: 'none',
             scrollTrigger: {
               trigger: `.${word}`,
@@ -71,12 +74,12 @@ export function S7Motion({children}: {children: ReactNode}) {
         },
       })
       .from(pile, {yPercent: 150, stagger: 0.2, ease: 'power2.out'});
-    SHEAR.d.forEach(([word, x]) => {
+    SHEAR.d.forEach(([word, from, to]) => {
       gsap.fromTo(
         `.${word}`,
-        {xPercent: 0},
+        {xPercent: from},
         {
-          xPercent: x,
+          xPercent: to,
           ease: 'none',
           scrollTrigger: {
             trigger: '.s7',

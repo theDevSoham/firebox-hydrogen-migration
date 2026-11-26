@@ -3,6 +3,7 @@ import {gsap, ScrollTrigger, SplitText} from '~/lib/film/gsap';
 import {
   CLIP_CENTRE,
   CLIP_FULL,
+  liteOn,
   primeTransforms,
   useSceneMotion,
 } from '~/lib/film/motion';
@@ -52,7 +53,7 @@ export function S9Motion({children}: {children: ReactNode}) {
     const canvas = scope.querySelector<HTMLCanvasElement>('.s9 .fb-smoke');
     const night = scope.querySelector<HTMLImageElement>('.s9-night');
     const smoke =
-      canvas && night
+      canvas && night && !liteOn()
         ? new Smoke(canvas, {
             rate: 10,
             rise: 80,

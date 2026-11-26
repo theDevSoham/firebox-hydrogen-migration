@@ -2,14 +2,33 @@ import {useEffect, useRef} from 'react';
 import {Logo} from '~/components/film/brand/Logo';
 import {Chip} from '~/components/film/ui/Chip';
 import {gsap} from '~/lib/film/gsap';
-import {CLIP_CENTRE, CLIP_FULL, getLenis, motionReady} from '~/lib/film/motion';
+import {
+  CLIP_CENTRE,
+  CLIP_FULL,
+  filmReady,
+  getLenis,
+  isFilmReady,
+  liteOn,
+} from '~/lib/film/motion';
 
 // S0 · Light the pit: the ~3 s title sequence, once per session. An ember, the tag wiping open,
 // THE · FIRE · BOX rising, a flame flaring through, the chip, then the shutter lifts and the nav
-// drops in. Any wheel, touch or key finishes it at once; it never blocks the page.
+// drops in.
 //
-// It shows only when the inline script in app/root.tsx (MOTION_FLAGS) set html[data-intro] before first paint.
-// If this never runs, a CSS failsafe hides the overlay and shows the nav after 8 s.
+// It is also the film's curtain. The page behind it is still loading its fonts and art and
+// setting its scenes up, and all of that moves things; the shutter only lifts once that is done
+// (filmReady in lib/film/motion.ts), so the first thing a visitor sees of the film is the film,
+// already still. On a fast connection that is before the titles end and nothing changes. On a
+// slow one the titles hold on their last frame and the button reads "Loading…" until it is.
+//
+// Skip (the button, or any wheel, touch or key) ends the titles at once when the film is ready.
+// Before that it is remembered: the button reads "Loading…" and the shutter goes the moment the
+// film is ready. It never waits longer than filmReady's cap.
+//
+// It shows only when the inline script in app/root.tsx (MOTION_FLAGS) set html[data-intro] before
+// first paint. Until this script runs, the ember glows on its own (CSS) and the button reads
+// "Loading…". If this never runs, a CSS failsafe hides the overlay and shows the nav after 12 s;
+// if it only arrives after that, the titles are skipped, never played over a page already in use.
 //
 // The intro runs once per page load, outside React's effect lifecycle: React may hide and
 // re-show the tree (Strict Mode in development, Activity under cacheComponents), and an effect
@@ -17,49 +36,129 @@ import {CLIP_CENTRE, CLIP_FULL, getLenis, motionReady} from '~/lib/film/motion';
 
 const SKIP_EVENTS = ['wheel', 'touchstart', 'keydown'] as const;
 
+/** film.css · S0: the failsafe's delay, less a margin. Past this the page is already showing. */
+const FAILSAFE_MS = 11500;
+/** How long the titles wait for the logo's three layers before starting without them. */
+const LOGO_CAP_MS = 1500;
+
 let intro: {skip: () => void} | null = null;
+
+/** The tag's three layers, loaded, so the titles don't rise as empty boxes. */
+function logoLoaded(overlay: HTMLElement): Promise<void> {
+  const layers = [...overlay.querySelectorAll<HTMLImageElement>('.s0-tag img')];
+  // They are lazy so that visits without the intro never fetch them. It is playing: fetch them
+  // now, and the flame with them, whatever the browser's lazy-loading makes of a covered page.
+  for (const img of overlay.querySelectorAll('img')) img.loading = 'eager';
+  return Promise.race([
+    Promise.all(
+      layers.map((img) =>
+        img.complete
+          ? undefined
+          : new Promise<void>((resolve) => {
+              img.addEventListener('load', () => resolve(), {once: true});
+              img.addEventListener('error', () => resolve(), {once: true});
+            }),
+      ),
+    ).then(() => undefined),
+    new Promise<void>((resolve) => setTimeout(resolve, LOGO_CAP_MS)),
+  ]);
+}
 
 function runIntro(overlay: HTMLElement) {
   const html = document.documentElement;
   const nav = document.querySelector<HTMLElement>('[data-site-nav]');
   if (intro || !nav || !html.hasAttribute('data-intro')) return;
 
-  // JavaScript has taken over: cancel the failsafe.
-  overlay.style.animation = 'none';
-  nav.style.animation = 'none';
   try {
     sessionStorage.setItem('fb-intro', '1');
   } catch {
     // Storage blocked (private mode): the intro just plays again next visit.
   }
 
-  let timeline: gsap.core.Timeline | null = null;
-  const skip = () => {
-    if (timeline && timeline.progress() < 1) timeline.progress(1);
-  };
-  intro = {skip};
+  // Too late: the failsafe has shown the page (or is about to). Leave it be.
+  if (performance.now() > FAILSAFE_MS) {
+    html.removeAttribute('data-intro');
+    return;
+  }
+
+  // JavaScript has taken over: cancel the failsafe, and the ember's waiting glow.
+  overlay.style.animation = 'none';
+  nav.style.animation = 'none';
+  overlay.setAttribute('data-live', '');
+
+  const button = overlay.querySelector<HTMLButtonElement>('.s0-skip');
+  const busy = (on: boolean) => button?.toggleAttribute('data-busy', on);
+  busy(false);
+
+  const q = gsap.utils.selector(overlay);
+  let titles: gsap.core.Timeline | null = null;
+  let lift: gsap.core.Timeline | null = null;
+  let titlesDone = false;
+  let wantsSkip = false;
+  let finished = false;
 
   const finish = () => {
+    if (finished) return;
+    finished = true;
     SKIP_EVENTS.forEach((type) => window.removeEventListener(type, skip));
     html.removeAttribute('data-intro');
     gsap.set(nav, {clearProps: 'opacity,visibility,transform'});
     getLenis()?.start();
   };
 
-  void motionReady().then(() => {
-    const q = gsap.utils.selector(overlay);
+  /** Ends everything at once: the titles' last frame, the shutter gone, the nav in. */
+  const cut = () => {
+    titles?.progress(1);
+    lift?.progress(1);
+    finish();
+  };
 
-    const lenis = getLenis();
-    lenis?.scrollTo(0, {immediate: true});
-    lenis?.stop();
-    window.scrollTo(0, 0);
-    SKIP_EVENTS.forEach((type) => {
-      window.addEventListener(type, skip, {passive: true});
-    });
+  function skip() {
+    if (finished) return;
+    if (isFilmReady()) cut();
+    else {
+      wantsSkip = true;
+      busy(true);
+    }
+  }
+  intro = {skip};
 
-    gsap.set(nav, {autoAlpha: 0, y: -20});
-    timeline = gsap
-      .timeline({delay: 0.2, onComplete: finish})
+  const lenis = getLenis();
+  lenis?.scrollTo(0, {immediate: true});
+  lenis?.stop();
+  window.scrollTo(0, 0);
+  SKIP_EVENTS.forEach((type) => {
+    window.addEventListener(type, skip, {passive: true});
+  });
+  gsap.set(nav, {autoAlpha: 0, y: -20});
+
+  // The shutter and the nav: played when the titles are over and the film is ready.
+  lift = gsap
+    .timeline({paused: true, onComplete: finish})
+    .to(overlay, {yPercent: -100, duration: 0.9, ease: 'power4.inOut'})
+    .to(nav, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out'}, 0.5);
+
+  void filmReady().then(() => {
+    if (finished) return;
+    if (wantsSkip) cut();
+    else if (titlesDone) {
+      busy(false);
+      lift?.play();
+    }
+  });
+
+  void logoLoaded(overlay).then(() => {
+    if (finished) return;
+    titles = gsap
+      .timeline({
+        delay: 0.2,
+        onComplete: () => {
+          titlesDone = true;
+          if (isFilmReady()) lift?.play();
+          // Still loading: hold the last frame and say so.
+          else busy(true);
+        },
+      })
       .fromTo(
         q('.s0-ember'),
         {autoAlpha: 0, scale: 0.6},
@@ -79,36 +178,41 @@ function runIntro(overlay: HTMLElement) {
         0.5,
       )
       .fromTo(
-        q('.s0-flame'),
-        {autoAlpha: 0, scaleY: 0.55, transformOrigin: '50% 90%'},
-        {autoAlpha: 0.95, scaleY: 1.06, duration: 0.5, ease: 'power2.out'},
-        0.7,
-      )
-      .to(
-        q('.s0-flame'),
-        {
-          scaleY: 0.92,
-          scaleX: 1.03,
-          duration: 0.18,
-          yoyo: true,
-          repeat: 4,
-          ease: 'power4.inOut',
-        },
-        1.2,
-      )
-      .to(
-        q('.s0-flame'),
-        {autoAlpha: 0, scaleY: 1.2, duration: 0.7, ease: 'power2.out'},
-        1.95,
-      )
-      .fromTo(
         q('.s0-chip [data-chip]'),
         {clipPath: CLIP_CENTRE},
         {clipPath: CLIP_FULL, duration: 0.8, ease: 'circ.out'},
         1.3,
       )
-      .to(overlay, {yPercent: -100, duration: 0.9, ease: 'power4.inOut'}, 2.4)
-      .to(nav, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out'}, 2.9);
+      // The beat the flame used to fill, kept so the titles read before the shutter.
+      .to({}, {duration: 0.3});
+
+    // The flame is a large blended, masked image: the frames it costs a small phone show.
+    if (!liteOn()) {
+      titles
+        .fromTo(
+          q('.s0-flame'),
+          {autoAlpha: 0, scaleY: 0.55, transformOrigin: '50% 90%'},
+          {autoAlpha: 0.95, scaleY: 1.06, duration: 0.5, ease: 'power2.out'},
+          0.7,
+        )
+        .to(
+          q('.s0-flame'),
+          {
+            scaleY: 0.92,
+            scaleX: 1.03,
+            duration: 0.18,
+            yoyo: true,
+            repeat: 4,
+            ease: 'power4.inOut',
+          },
+          1.2,
+        )
+        .to(
+          q('.s0-flame'),
+          {autoAlpha: 0, scaleY: 1.2, duration: 0.7, ease: 'power2.out'},
+          1.95,
+        );
+    }
     gsap.set(q('.s0-tilt, .s0-chipwrap'), {visibility: 'visible'});
   });
 }
@@ -138,7 +242,7 @@ export function S0Intro() {
       <div className="fb-ember s0-ember" />
       <div className="s0-tilt">
         <div className="s0-tag">
-          <Logo variant="groups" width="87.5%" alt="" />
+          <Logo variant="groups" width="87.5%" alt="" lazy />
         </div>
       </div>
       <div className="s0-chipwrap">
@@ -146,14 +250,18 @@ export function S0Intro() {
           Low &amp; slow · wood smoked
         </Chip>
       </div>
-      {/* Pointer only: on a keyboard, any key skips. The overlay is hidden from screen readers. */}
+      {/* Pointer only: on a keyboard, any key skips. The overlay is hidden from screen readers.
+          data-busy picks the label (film.css): "Loading…" as served, until the script above runs,
+          and again whenever a skip is waiting on the film. */}
       <button
         type="button"
         className="s0-skip"
         tabIndex={-1}
+        data-busy=""
         onClick={() => intro?.skip()}
       >
-        Skip intro
+        <span className="s0-skip__go">Skip intro</span>
+        <span className="s0-skip__wait">Loading…</span>
       </button>
     </div>
   );

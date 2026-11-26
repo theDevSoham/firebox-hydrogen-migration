@@ -88,10 +88,10 @@
   --color-fb-bw: var(--fb-bw);
   --color-fb-guest: var(--fb-guest);
 
-  --font-display: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
-  --font-label: var(--font-yanone), "Arial Narrow", sans-serif;
+  --font-display: var(--font-anton), "Anton Fallback Impact", "Anton Fallback", Impact, sans-serif;
+  --font-label: var(--font-yanone), "Yanone Fallback", "Arial Narrow", sans-serif;
   --font-accent: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-jost), Futura, "Century Gothic", system-ui, sans-serif;
+  --font-sans: var(--font-jost), "Jost Fallback", system-ui, sans-serif;
   --font-marker: var(--font-permanent-marker), "Comic Sans MS", cursive;
 
   /* The type scale above, as text-fb-* utilities with their line heights. */

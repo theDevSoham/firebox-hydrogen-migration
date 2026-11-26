@@ -88,7 +88,14 @@ export function S9Footer({
         </div>
         <div className="s9-floor" aria-hidden="true">
           <div className="s9-fl">
-            <img src="/brand/floor-fire.svg" alt="" width={147} height={116} />
+            <img
+              src="/brand/floor-fire.svg"
+              alt=""
+              width={147}
+              height={116}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
           <div className="s9-machine">
             <div data-machine>
@@ -100,7 +107,14 @@ export function S9Footer({
             </div>
           </div>
           <div className="s9-fl">
-            <img src="/brand/floor-box.svg" alt="" width={170} height={117} />
+            <img
+              src="/brand/floor-box.svg"
+              alt=""
+              width={170}
+              height={117}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         </div>
       </footer>

@@ -25,6 +25,8 @@ type LogoProps = {
   /** "The Firebox" once per view; pass "" where a parent already names it. */
   alt?: string;
   preload?: boolean;
+  /** Not on screen at first (a nav variant for another chapter, the intro's layers): fetched only once it shows. */
+  lazy?: boolean;
   fetchPriority?: 'high' | 'low' | 'auto';
   className?: string;
 };
@@ -34,6 +36,7 @@ export function Logo({
   width,
   alt = 'The Firebox',
   preload,
+  lazy,
   fetchPriority,
   className,
 }: LogoProps) {
@@ -59,7 +62,7 @@ export function Logo({
             width={LOGO_W}
             height={LOGO_H}
             data-group={g}
-            loading="eager"
+            loading={lazy ? 'lazy' : 'eager'}
             decoding="async"
           />
         ))}
@@ -74,7 +77,7 @@ export function Logo({
       width={LOGO_W}
       height={LOGO_H}
       className="fb-logo"
-      loading="eager"
+      loading={lazy ? 'lazy' : 'eager'}
       decoding="async"
       {...fetchPriorityAttr(preload ? 'high' : fetchPriority)}
     />

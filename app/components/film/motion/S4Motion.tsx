@@ -1,6 +1,6 @@
 import {useRef, type ReactNode} from 'react';
 import {gsap, ScrollTrigger, SplitText} from '~/lib/film/gsap';
-import {useSceneMotion} from '~/lib/film/motion';
+import {liteOn, useSceneMotion} from '~/lib/film/motion';
 
 // S4 · The cuts: each chapter title swells letter by letter under the nav while its cards
 // pass beneath; on desktop the card images drift inside their frames.
@@ -46,7 +46,8 @@ export function S4Motion({children}: {children: ReactNode}) {
         },
       );
 
-      if (d) {
+      // A scrubbed tween per photo: skipped on a device that travels light.
+      if (d && !liteOn()) {
         chapter
           .querySelectorAll<HTMLElement>('[data-parallax]')
           .forEach((img) => {

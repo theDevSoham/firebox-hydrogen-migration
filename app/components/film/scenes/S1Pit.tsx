@@ -41,7 +41,7 @@ export function S1Pit({pit: text}: {pit: Film['pit']}) {
             {/* The film shows a few dishes; this one opens the whole menu. */}
             <Cta
               href="/menu"
-              variant="on-red"
+              variant="accent"
               size="l"
               glyph={false}
               className="s1-note"

@@ -13,6 +13,18 @@ export type NavTheme =
 const TAG_W = 'clamp(90px, 7.5vw, 108px)';
 const LOGO_W = 'clamp(112px, 9.2vw, 132px)';
 
+/** The nav's logos, one per ground (film.css shows the one for data-theme). */
+const NAV_LOGOS = ['tag', 'normal', 'reversed', 'mono-cream'] as const;
+const FIRST_LOGO: Record<NavTheme, (typeof NAV_LOGOS)[number]> = {
+  night: 'tag',
+  bark: 'tag',
+  light: 'normal',
+  kraft: 'normal',
+  ember: 'reversed',
+  red: 'reversed',
+  bw: 'mono-cream',
+};
+
 export function SiteNav({
   theme = 'night',
   home = '#top',
@@ -33,23 +45,18 @@ export function SiteNav({
           home === '#top' ? 'The Firebox, back to the top' : 'The Firebox, home'
         }
       >
-        <span data-logo="tag">
-          <Logo variant="tag" width={TAG_W} alt="" />
-        </span>
-        <span data-logo="normal">
-          <Logo variant="normal" width={LOGO_W} alt="" fetchPriority="low" />
-        </span>
-        <span data-logo="reversed">
-          <Logo variant="reversed" width={LOGO_W} alt="" />
-        </span>
-        <span data-logo="mono-cream">
-          <Logo
-            variant="mono-cream"
-            width={LOGO_W}
-            alt=""
-            fetchPriority="low"
-          />
-        </span>
+        {NAV_LOGOS.map((variant) => (
+          <span key={variant} data-logo={variant}>
+            <Logo
+              variant={variant}
+              width={variant === 'tag' ? TAG_W : LOGO_W}
+              alt=""
+              // Only the one this page opens on is fetched now; the others stay hidden until
+              // their chapter (ThemeController warms them once the page is up).
+              lazy={variant !== FIRST_LOGO[theme]}
+            />
+          </span>
+        ))}
       </a>
       <div className="fb-nav__end">
         <a

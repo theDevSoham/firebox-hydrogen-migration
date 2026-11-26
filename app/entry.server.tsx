@@ -12,6 +12,10 @@ import {analyticsCsp} from '~/lib/analytics';
 const SCRIPT_SRC = ["'self'", 'https://cdn.shopify.com'];
 const IMG_SRC = ["'self'", 'https://cdn.shopify.com', 'data:'];
 
+/** A domain as Hydrogen's policy wants it: no protocol, no path (it adds https:// itself). */
+const bareDomain = (value: string | undefined) =>
+  value?.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -38,8 +42,8 @@ export default async function handleRequest(
     }),
     ...(extra.imgSrc.length > 0 && {imgSrc: [...IMG_SRC, ...extra.imgSrc]}),
     shop: {
-      checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
-      storeDomain: context.env.PUBLIC_STORE_DOMAIN,
+      checkoutDomain: bareDomain(context.env.PUBLIC_CHECKOUT_DOMAIN),
+      storeDomain: bareDomain(context.env.PUBLIC_STORE_DOMAIN),
     },
   });
 
