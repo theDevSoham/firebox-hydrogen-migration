@@ -4,6 +4,9 @@ import {MenuPage} from '~/components/film/menu/MenuPage';
 import {toMenuPage} from '~/lib/film/model';
 import {MENU_QUERY} from '~/lib/film/query';
 import filmStyles from '~/styles/film.css?url';
+import antonFont from '~/assets/fonts/anton-latin-400-normal.woff2?url';
+import jostFont from '~/assets/fonts/jost-latin-wght-normal.woff2?url';
+import yanoneFont from '~/assets/fonts/yanone-kaffeesatz-latin-wght-normal.woff2?url';
 
 // /menu: the menu on its own, quick to load and scan (no film). `handle.film` drops the
 // skeleton's chrome and styles, as on the home and cart pages (app/root.tsx).
@@ -11,6 +14,14 @@ export const handle = {film: true};
 
 export const links: Route.LinksFunction = () => [
   {rel: 'stylesheet', href: filmStyles},
+  // Every face the page sets (titles, chips and buttons, descriptions), fetched with the stylesheet.
+  ...[antonFont, yanoneFont, jostFont].map((href) => ({
+    rel: 'preload',
+    href,
+    as: 'font',
+    type: 'font/woff2',
+    crossOrigin: 'anonymous' as const,
+  })),
 ];
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -21,7 +32,7 @@ export const meta: Route.MetaFunction = ({data}) => {
   return [
     {title},
     {name: 'description', content: description},
-    {name: 'theme-color', content: '#160B06'},
+    {name: 'theme-color', content: '#DC3232'},
     {name: 'color-scheme', content: 'dark'},
     {tagName: 'link', rel: 'canonical', href: data.url},
     {property: 'og:type', content: 'website'},

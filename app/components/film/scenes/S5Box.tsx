@@ -2,6 +2,7 @@ import {Img} from '~/components/film/media/Img';
 import {S5Motion} from '~/components/film/motion/S5Motion';
 import {Lines} from '~/components/film/ui/Lines';
 import {Placeholder} from '~/components/film/ui/Placeholder';
+import type {CSSProperties} from 'react';
 import type {Film} from '~/lib/film/model';
 
 // S5 · Open the box. The static frame is the open box; motion adds the closed box,
@@ -9,6 +10,15 @@ import type {Film} from '~/lib/film/model';
 
 export function S5Box({box: text}: {box: Film['box']}) {
   const closed = text.closed;
+  // Each image's height over its width: phones show the art whole, at the page's width (film.css).
+  const ratio = (image: {width: number; height: number}) =>
+    image.width > 0 && image.height > 0
+      ? image.height / image.width
+      : undefined;
+  const shape = {
+    '--open-ar': ratio(text.open),
+    '--closed-ar': ratio(closed),
+  } as CSSProperties;
 
   return (
     <S5Motion>
@@ -16,7 +26,13 @@ export function S5Box({box: text}: {box: Film['box']}) {
         <span className="fb-tape s5-tape" aria-hidden="true" />
         <span className="s5-scrawl">{text.scrawl}</span>
       </div>
-      <section className="s5" data-chapter data-theme="night" data-scene="S5">
+      <section
+        className="s5"
+        data-chapter
+        data-theme="night"
+        data-scene="S5"
+        style={shape}
+      >
         <div className="s5-reveal">
           <Img
             image={text.open}

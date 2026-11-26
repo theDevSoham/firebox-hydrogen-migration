@@ -5,6 +5,8 @@ import {toFilm} from '~/lib/film/model';
 import {FILM_QUERY} from '~/lib/film/query';
 import filmStyles from '~/styles/film.css?url';
 import antonFont from '~/assets/fonts/anton-latin-400-normal.woff2?url';
+import frauncesFont from '~/assets/fonts/fraunces-300-soft100-wonk1.woff2?url';
+import yanoneFont from '~/assets/fonts/yanone-kaffeesatz-latin-wght-normal.woff2?url';
 
 // The home page is the film. `handle.film` tells the root layout to drop the skeleton's header,
 // footer and stylesheets here (app/root.tsx).
@@ -12,14 +14,15 @@ export const handle = {film: true};
 
 export const links: Route.LinksFunction = () => [
   {rel: 'stylesheet', href: filmStyles},
-  // Only Anton is preloaded: it sets the S1 headline, the page's largest paint.
-  {
+  // The three faces on the first screen (headline, the line under it, buttons and chips),
+  // fetched with the stylesheet instead of after it. Jost and Permanent Marker come later.
+  ...[antonFont, yanoneFont, frauncesFont].map((href) => ({
     rel: 'preload',
-    href: antonFont,
+    href,
     as: 'font',
     type: 'font/woff2',
-    crossOrigin: 'anonymous',
-  },
+    crossOrigin: 'anonymous' as const,
+  })),
 ];
 
 export const meta: Route.MetaFunction = ({data}) => {

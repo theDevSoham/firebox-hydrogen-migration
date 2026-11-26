@@ -36,7 +36,7 @@ export function MenuPage({
           Skip to content
         </a>
         <InPageLinks />
-        <SiteNav home="/" current="menu" />
+        <SiteNav theme="red" home="/" current="menu" />
         <main
           id="content"
           tabIndex={-1}

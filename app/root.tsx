@@ -166,9 +166,11 @@ function loadDeferredData({context}: Route.LoaderArgs) {
  * Runs before first paint. data-motion marks that motion will run, which is whenever JavaScript
  * does: the film plays for every visitor, whatever their reduced-motion setting (the client's
  * call). Without JavaScript the static film stands. data-intro says S0 should play: home page,
- * no deep link, not yet seen this session. Inline, so it carries Hydrogen's CSP nonce (D.3.4).
+ * no deep link, not yet seen this session. data-lite marks a device that should travel light
+ * (lib/film/motion.ts liteOn): the visitor asked to save data, or it has 4 GB of memory or less,
+ * or four cores or fewer. Inline, so it carries Hydrogen's CSP nonce (D.3.4).
  */
-const MOTION_FLAGS = `(function(){var d=document.documentElement;d.setAttribute("data-motion","");try{if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("fb-intro"))d.setAttribute("data-intro","")}catch(e){}})()`;
+const MOTION_FLAGS = `(function(){var d=document.documentElement,n=navigator;d.setAttribute("data-motion","");try{if(location.pathname==="/"&&!location.hash&&!sessionStorage.getItem("fb-intro"))d.setAttribute("data-intro","")}catch(e){}try{if((n.connection&&n.connection.saveData)||(n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4))d.setAttribute("data-lite","")}catch(e){}})()`;
 
 /** Routes with `handle.film` (the home page) render without the skeleton's chrome and styles. */
 function useIsFilm() {

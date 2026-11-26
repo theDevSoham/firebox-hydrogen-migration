@@ -7,8 +7,8 @@ import {Arrowhead, WhatsAppGlyph} from './icons';
 type CtaProps = {
   href: string;
   children?: ReactNode;
-  /** primary (red, WhatsApp glyph) · secondary (cream outline) · text (Yanone with ➤) · on-red (charcoal) · sold-out */
-  variant?: 'primary' | 'secondary' | 'text' | 'on-red' | 'sold-out';
+  /** primary (red, WhatsApp glyph) · secondary (cream outline) · text (Yanone with ➤) · on-red (charcoal) · accent (cream, beside a primary) · sold-out */
+  variant?: 'primary' | 'secondary' | 'text' | 'on-red' | 'accent' | 'sold-out';
   /** L 60px · M 48px · S 48px min */
   size?: 'l' | 'm' | 's';
   /** Show the WhatsApp glyph. Defaults on for primary and on-red. */

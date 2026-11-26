@@ -14,21 +14,48 @@ export function motionQueries() {
   return {d: '(min-width: 768px)', m: '(max-width: 767px)'};
 }
 
+/**
+ * True on a device that should travel light: little memory, few cores, or the visitor asked the
+ * browser to save data (MOTION_FLAGS in app/root.tsx sets html[data-lite] before first paint).
+ * The film still plays; it drops what costs most and adds least: the canvas smoke, the intro's
+ * blended flame, the cards' parallax and the smoothed wheel.
+ */
+export const liteOn = () => document.documentElement.hasAttribute('data-lite');
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** The longest the film waits on fonts before it sets up with whatever has arrived. */
+const FONTS_CAP_MS = 6000;
+
 let fontsReady: Promise<void> | null = null;
 
 /**
- * Resolves once the fonts have swapped in (or after 2.5 s), so SplitText measures the real faces.
- * Every scene waits on this one promise, so their ScrollTriggers are still created in page order.
+ * Resolves once the fonts have swapped in (or after 6 s), so SplitText measures the real faces:
+ * split on the stand-ins, lines break in the wrong places and jump when the fonts land. Every
+ * scene waits on this one promise, so their ScrollTriggers are still created in page order.
+ * On a first visit the intro covers the wait (filmReady below).
  */
 export function motionReady(): Promise<void> {
   fontsReady ??= Promise.race([
     document.fonts
       ? document.fonts.ready.then(() => undefined)
       : Promise.resolve(),
-    new Promise<void>((resolve) => setTimeout(resolve, 2500)),
+    wait(FONTS_CAP_MS),
   ]);
   return fontsReady;
 }
+
+/**
+ * A pause that lets the browser paint first: idle time where it has it (so the intro's frames
+ * come before a scene's setup), else the next task.
+ */
+const breathe = () =>
+  new Promise<void>((resolve) => {
+    if (typeof requestIdleCallback === 'function')
+      requestIdleCallback(() => resolve(), {timeout: 200});
+    else setTimeout(resolve, 0);
+  });
 
 let turns: Promise<void> | null = null;
 
@@ -38,15 +65,67 @@ let turns: Promise<void> | null = null;
  * after load; a task each keeps it responsive, and ScrollTriggers are still created top to bottom.
  */
 export function motionTurn(): Promise<void> {
-  turns = (turns ?? motionReady()).then(
-    () => new Promise<void>((resolve) => setTimeout(resolve, 0)),
-  );
+  turns = (turns ?? motionReady()).then(breathe);
   return turns;
 }
 
 /** Resolves once every scene has had its turn. */
 export function motionSettled(): Promise<void> {
   return motionReady().then(() => turns ?? undefined);
+}
+
+/** The longest the intro holds the page back, counted from when its script starts. */
+const READY_CAP_MS = 8000;
+
+let ready: Promise<void> | null = null;
+let readyNow = false;
+
+/**
+ * Resolves when the film can be shown without anything moving under the visitor: the fonts are
+ * in, the first screen's art is decoded, every scene is set up and the page has been measured
+ * with its pins. The intro (S0) holds its curtain until then; it never waits past the cap.
+ */
+export function filmReady(): Promise<void> {
+  ready ??= Promise.race([
+    Promise.all([
+      // Two frames after the last scene: SmoothScroll's ScrollTrigger.refresh() runs in the first.
+      motionSettled().then(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+          ),
+      ),
+      heroDecoded(),
+      devHold(),
+    ]).then(() => undefined),
+    wait(READY_CAP_MS),
+  ]).then(() => void (readyNow = true));
+  return ready;
+}
+
+/**
+ * Development only: `/?hold=4000` keeps the film "loading" for that many milliseconds, to see
+ * the intro wait and the Skip button's "Loading…" without a slow connection. Not in the build.
+ */
+function devHold(): Promise<void> {
+  if (!import.meta.env.DEV) return Promise.resolve();
+  const ms = Number(new URLSearchParams(location.search).get('hold'));
+  return ms > 0 ? wait(ms) : Promise.resolve();
+}
+
+/** Whether filmReady() has resolved. */
+export const isFilmReady = () => readyNow;
+
+/** The first screen's art, loaded and decoded, so lifting the curtain doesn't reveal it half-drawn. */
+async function heroDecoded() {
+  const img = document.querySelector<HTMLImageElement>('.s1-card img');
+  if (!img) return;
+  if (!img.complete)
+    await new Promise<void>((resolve) => {
+      img.addEventListener('load', () => resolve(), {once: true});
+      img.addEventListener('error', () => resolve(), {once: true});
+    });
+  await img.decode?.().catch(() => undefined);
 }
 
 let lenis: Lenis | null = null;

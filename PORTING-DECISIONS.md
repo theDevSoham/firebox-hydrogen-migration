@@ -279,6 +279,16 @@ The menu is organised by meat, and the home page picks its dishes.
 - **Section backgrounds go by position, not by section**: the first section showing is kraft, then ember, night, bark, and round again (`SECTION_THEMES` in `app/lib/film/model.ts`). Reordering the menu keeps that run of colours. The `firebox.theme` collection field is no longer read or seeded; the store may still hold it.
 - The **home page (film, S4)** shows only the dishes in Shopify's **Home page** collection (handle `frontpage`), each under its menu section. `/menu` shows the whole menu. While Home page is empty, the film shows the whole menu (D.2.5).
 
+### D.8 Loading and low-end devices (2026-11-26)
+
+The film must hold together on a slow phone and a slow connection.
+
+- **The intro (S0) is the loading curtain.** It lifts only when the film is ready: fonts in, the first screen's art decoded, every scene set up and measured (`filmReady` in `app/lib/film/motion.ts`), and never later than 8 s after its script starts. Titles that finish first hold their last frame. **Skip** ends it at once when the film is ready; before that the button reads **Loading…** and the curtain goes the moment it is. Until the script runs the button also reads Loading… and the ember glows; the no-script failsafe shows the page after 12 s.
+- **Fonts don't move the page.** The first screen's faces are preloaded (home: Anton, Yanone, Fraunces; `/menu`: Anton, Yanone, Jost), and each has a width-matched system stand-in (`size-adjust`, `app/styles/film.css`). Scenes wait for the fonts (up to 6 s) before splitting text.
+- **Nothing hidden is fetched up front.** The nav's other logos, the intro's layers and the footer's floor letters are lazy; the nav logos are warmed once the film is up.
+- **Lite devices** (`html[data-lite]`: Save-Data on, 4 GB of memory or less, or four cores or fewer) skip the canvas smoke and steam, the intro's blended flame, the cards' parallax and the smoothed wheel. Everything else plays.
+- **Development:** `/?hold=4000` keeps the film "loading" for that long, to see the curtain wait.
+
 ## E. Build order
 
 1. Port the film into Hydrogen with static data shaped exactly like section B (no store needed).

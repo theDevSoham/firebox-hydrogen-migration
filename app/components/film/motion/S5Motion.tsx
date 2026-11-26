@@ -1,6 +1,6 @@
 import {useRef, type ReactNode} from 'react';
 import {gsap} from '~/lib/film/gsap';
-import {useSceneMotion} from '~/lib/film/motion';
+import {liteOn, useSceneMotion} from '~/lib/film/motion';
 import {Smoke} from '~/lib/film/smoke';
 
 // S5 · Open the box: pinned without spacing, so S6 slides over it (the spacer after the
@@ -12,20 +12,22 @@ export function S5Motion({children}: {children: ReactNode}) {
 
   useSceneMotion(ref, ({d, scope}) => {
     const canvas = scope.querySelector<HTMLCanvasElement>('.s5 .fb-smoke');
-    const steam = canvas
-      ? new Smoke(canvas, {
-          rate: 9,
-          rise: 70,
-          life: 4,
-          size: [18, 54],
-          alpha: 0.14,
-          source: (w, h) => ({
-            x: w * (0.42 + Math.random() * 0.16),
-            y: h * 0.62,
-            s: 1,
-          }),
-        })
-      : null;
+    // No steam on a device that travels light (the canvas is hidden there too).
+    const steam =
+      canvas && !liteOn()
+        ? new Smoke(canvas, {
+            rate: 9,
+            rise: 70,
+            life: 4,
+            size: [18, 54],
+            alpha: 0.14,
+            source: (w, h) => ({
+              x: w * (0.42 + Math.random() * 0.16),
+              y: h * 0.62,
+              s: 1,
+            }),
+          })
+        : null;
     let steaming = false;
     const setSteam = (on: boolean) => {
       if (on === steaming) return;

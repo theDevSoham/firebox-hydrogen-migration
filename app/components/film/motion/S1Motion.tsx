@@ -1,6 +1,6 @@
 import {useRef, type ReactNode} from 'react';
 import {gsap, ScrollTrigger} from '~/lib/film/gsap';
-import {useSceneMotion} from '~/lib/film/motion';
+import {liteOn, useSceneMotion} from '~/lib/film/motion';
 import {coverPoint, Smoke} from '~/lib/film/smoke';
 
 // S1 · The pit: the postcard tilts, shrinks and sinks while S2 slides over it; smoke rises
@@ -31,7 +31,8 @@ export function S1Motion({children}: {children: ReactNode}) {
 
     const canvas = scope.querySelector<HTMLCanvasElement>('.s1 .fb-smoke');
     const img = scope.querySelector<HTMLImageElement>('.s1-card img');
-    if (!canvas || !img) return;
+    // No smoke on a device that travels light (the canvas is hidden there too).
+    if (!canvas || !img || liteOn()) return;
     const smoke = new Smoke(canvas, {
       rate: 7,
       rise: 62,
