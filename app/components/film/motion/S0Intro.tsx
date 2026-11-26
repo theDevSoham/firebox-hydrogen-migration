@@ -21,9 +21,10 @@ import {
 // already still. On a fast connection that is before the titles end and nothing changes. On a
 // slow one the titles hold on their last frame and the button reads "Loading…" until it is.
 //
-// Skip (the button, or any wheel, touch or key) ends the titles at once when the film is ready.
-// Before that it is remembered: the button reads "Loading…" and the shutter goes the moment the
-// film is ready. It never waits longer than filmReady's cap.
+// Skip (the button, or any wheel, touch or key) leaves the way the titles end: they stop where
+// they are, the shutter lifts and the nav drops in. That is when the film is ready. Before that
+// the skip is remembered: the button reads "Loading…" and the shutter lifts the moment the film
+// is ready. It never waits longer than filmReady's cap.
 //
 // It shows only when the inline script in app/root.tsx (MOTION_FLAGS) set html[data-intro] before
 // first paint. Until this script runs, the ember glows on its own (CSS) and the button reads
@@ -95,6 +96,7 @@ function runIntro(overlay: HTMLElement) {
   let lift: gsap.core.Timeline | null = null;
   let titlesDone = false;
   let wantsSkip = false;
+  let leaving = false;
   let finished = false;
 
   const finish = () => {
@@ -106,16 +108,21 @@ function runIntro(overlay: HTMLElement) {
     getLenis()?.start();
   };
 
-  /** Ends everything at once: the titles' last frame, the shutter gone, the nav in. */
-  const cut = () => {
-    titles?.progress(1);
-    lift?.progress(1);
-    finish();
+  /**
+   * The one way out, at the titles' end or on a skip: the titles stop where they are, the shutter
+   * lifts and the nav drops in. Only called once the film is ready.
+   */
+  const leave = () => {
+    if (leaving || finished) return;
+    leaving = true;
+    busy(false);
+    titles?.pause();
+    lift?.play();
   };
 
   function skip() {
-    if (finished) return;
-    if (isFilmReady()) cut();
+    if (leaving || finished) return;
+    if (isFilmReady()) leave();
     else {
       wantsSkip = true;
       busy(true);
@@ -132,29 +139,25 @@ function runIntro(overlay: HTMLElement) {
   });
   gsap.set(nav, {autoAlpha: 0, y: -20});
 
-  // The shutter and the nav: played when the titles are over and the film is ready.
+  // The shutter and the nav: played by leave().
   lift = gsap
     .timeline({paused: true, onComplete: finish})
     .to(overlay, {yPercent: -100, duration: 0.9, ease: 'power4.inOut'})
     .to(nav, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out'}, 0.5);
 
   void filmReady().then(() => {
-    if (finished) return;
-    if (wantsSkip) cut();
-    else if (titlesDone) {
-      busy(false);
-      lift?.play();
-    }
+    if (wantsSkip || titlesDone) leave();
   });
 
   void logoLoaded(overlay).then(() => {
-    if (finished) return;
+    // Skipped before the logo arrived: the shutter is already lifting.
+    if (leaving || finished) return;
     titles = gsap
       .timeline({
         delay: 0.2,
         onComplete: () => {
           titlesDone = true;
-          if (isFilmReady()) lift?.play();
+          if (isFilmReady()) leave();
           // Still loading: hold the last frame and say so.
           else busy(true);
         },
